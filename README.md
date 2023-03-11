@@ -19,6 +19,8 @@ dotnet run -p Pty.NET.TcpListener.Linux.Server/Pty.NET.TcpListener.Linux.Server.
 ### Run `telent` client command on Linux/Windows/MacOS as below:
 ```sh
 
+# Connect to server
+
 telnet localhost 13000
 
 # Then input any Linux command you want
