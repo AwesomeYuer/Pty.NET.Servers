@@ -23,7 +23,7 @@ dotnet run -p Pty.NET.WebSockets.Server/Pty.NET.WebSockets.Server.csproj
 ### Run `telent` client command on `Linux/Windows/MacOS` as below:
 ```sh
 
-# Connect to server
+# Connect to TcpListener server
 
 telnet localhost 13000
 
