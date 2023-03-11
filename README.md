@@ -1,6 +1,6 @@
 # Pty.NET.TcpListener.Linux.Server Create By AwesomeYuer@Microshaoft
-	Support only for Linux
-	It's only a too simple sample of using Pty.NET
+# It's only a too simple sample for using Pty.NET
+# Support only for Linux
 ## Usage
 
 ### Run Command Pty.NET.TcpListener.Linux.Server on WSL or Linux as below:
@@ -27,6 +27,7 @@ pwd
 
 ```
 
+# Original information as below:
 
 # Pty.Net
 [![NuGet package](https://img.shields.io/nuget/v/Pty.Net.svg)](https://nuget.org/packages/Pty.Net)
