@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-namespace Pty.Net.Mac
+namespace Pty.NET.Mac
 {
     using System;
     using System.Collections.Generic;
@@ -9,7 +9,7 @@ namespace Pty.Net.Mac
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using static Pty.Net.Mac.NativeMethods;
+    using static Pty.NET.Mac.NativeMethods;
 
     /// <summary>
     /// Provides a pty connection for MacOS machines.

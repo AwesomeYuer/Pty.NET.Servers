@@ -1,7 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using Pty.Net;
 using Pty.NET;
-using System;
 using System.Net;
 using System.Net.Sockets;
 

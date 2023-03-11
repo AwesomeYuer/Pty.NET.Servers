@@ -1,10 +1,6 @@
-﻿
-
-// See https://aka.ms/new-console-template for more information
+﻿// See https://aka.ms/new-console-template for more information
 using Pty.NET;
-using Pty.Net;
 using System.Net.WebSockets;
-using System.Reflection;
 
 
 const string Data = "abc✓ЖЖЖ①Ⅻㄨㄩ 啊阿鼾齄丂丄狚狛狜狝﨨﨩ˊˋ˙– ⿻〇㐀㐁䶴䶵";
@@ -162,11 +158,6 @@ app.Use(async (context, next) =>
     }
 
 });
-
-
-
-
-
 
 app.Run();
 
