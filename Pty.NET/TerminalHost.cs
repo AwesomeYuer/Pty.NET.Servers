@@ -74,7 +74,7 @@ public class PtyTerminalHost<TConection>
                         (
                             async () =>
                             {
-                                var bytes = new byte[4096];
+                                var bytes = new byte[64 * 1024];
                                 var runningCancellationToken = ListeningTerminalOutputCancellationTokenSource.Token;
                                 while
                                     (
@@ -106,7 +106,6 @@ public class PtyTerminalHost<TConection>
                                     }
                                     _firstOutput.TrySetResult(null);
                                 }
-                                Console.WriteLine("while finished!");
                                 _firstOutput.TrySetCanceled();
                                 _firstDataFound.TrySetCanceled();
                                 return false;
@@ -121,7 +120,7 @@ public class PtyTerminalHost<TConection>
             throw
                 new InvalidOperationException
                             (
-                                $"Could not get any output from terminal{GetTerminalExitCode()}"
+                                $"Could not get any output from terminal {GetTerminalExitCode()}"
                                 , exception
                             );
         };
