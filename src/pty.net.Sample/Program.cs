@@ -137,7 +137,7 @@ catch (OperationCanceledException exception)
 try
 {
 
-    TcpListener server = null!;
+    TcpListener tcpListener = null!;
     try
     {
         // Set the TcpListener on port 13000.
@@ -145,10 +145,10 @@ try
         IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
 
         // TcpListener server = new TcpListener(port);
-        server = new TcpListener(ipAddress, port);
+        tcpListener = new TcpListener(ipAddress, port);
 
         // Start listening for client requests.
-        server.Start();
+        tcpListener.Start();
 
         // Buffer for reading data
         byte[] bytes = new byte[256];
@@ -161,11 +161,11 @@ try
 
             // Perform a blocking call to accept requests.
             // You could also use server.AcceptSocket() here.
-            using TcpClient client = server.AcceptTcpClient();
+            using TcpClient tcpClient = tcpListener.AcceptTcpClient();
             Console.WriteLine("Connected!");
 
             // Get a stream object for reading and writing
-            NetworkStream stream = client.GetStream();
+            NetworkStream networkStream = tcpClient.GetStream();
 
             int r;
 
@@ -173,7 +173,7 @@ try
             while (1 == 1)
             {
                 Console.WriteLine($"socket reading ... @ {DateTime.Now}");
-                r = await stream.ReadAsync(bytes, 0, bytes.Length);
+                r = await networkStream.ReadAsync(bytes, 0, bytes.Length);
                 if (r == 0)
                 {
                     Thread.Sleep(100);
@@ -190,7 +190,7 @@ try
                 var rr = await terminal.ReaderStream.ReadAsync(buffer, 0, buffer.Length);
                 if (rr > 0)
                 {
-                    await stream.WriteAsync(buffer, 0, rr);
+                    await networkStream.WriteAsync(buffer, 0, rr);
                 }
             }
             Console.WriteLine($"socket reading finished!!! @ {DateTime.Now}");
@@ -202,7 +202,7 @@ try
     }
     finally
     {
-        server.Stop();
+        tcpListener.Stop();
     }
 
 
