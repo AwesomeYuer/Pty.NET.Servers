@@ -15,7 +15,7 @@ dotnet run -p Pty.NET.TcpListener.Linux.Server/Pty.NET.TcpListener.Linux.Server.
 
 ```
 
-#### Run telent client command on Linux/Windows/MacOS as below:
+#### Run `telent` client command on Linux/Windows/MacOS as below:
 ```sh
 
 telnet telnet 13000
