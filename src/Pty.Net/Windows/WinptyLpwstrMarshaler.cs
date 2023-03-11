@@ -21,7 +21,7 @@ namespace Pty.Net.Windows
         public static ICustomMarshaler GetInstance(string cookie) => instance;
 
         /// <inheritdoc/>
-        public object MarshalNativeToManaged(IntPtr pNativeData) => Marshal.PtrToStringUni(pNativeData);
+        public object MarshalNativeToManaged(IntPtr pNativeData) => Marshal.PtrToStringUni(pNativeData)!;
 
         /// <inheritdoc/>
         public void CleanUpNativeData(IntPtr pNativeData)

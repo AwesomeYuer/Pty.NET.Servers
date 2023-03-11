@@ -34,7 +34,7 @@ namespace Pty.Net.Windows
             this.handle = handle;
             this.processHandle = processHandle;
             this.process = Process.GetProcessById(this.Pid);
-            this.process.Exited += this.Process_Exited;
+            this.process.Exited += this.Process_Exited!;
             this.process.EnableRaisingEvents = true;
         }
 

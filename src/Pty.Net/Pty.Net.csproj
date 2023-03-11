@@ -1,10 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <None Include="$(WinptyReleasePath)\x64\*.dll;$(WinptyReleasePath)\x64\*.exe">
       <Visible>false</Visible>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -20,15 +22,15 @@
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
     </None>
-  </ItemGroup>
+  </ItemGroup>-->
   
-  <ItemGroup>
+  <!--<ItemGroup>
     <ProjectReference Include="..\OSS.Sign\OSS.Sign.csproj">
       <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
-  </ItemGroup>
+  </ItemGroup>-->
 
-  <Target Name="CollectNugetFiles" BeforeTargets="_GetPackageFiles">
+  <!--<Target Name="CollectNugetFiles" BeforeTargets="_GetPackageFiles">
     <ItemGroup>
       <OutputPtyFiles Include="$(RepoRootPath)\bin\winpty\**\*" />
       
@@ -71,5 +73,5 @@
         <PackagePath>build\x64\os64</PackagePath>
       </None>
     </ItemGroup>
-  </Target>
+  </Target>-->
 </Project>

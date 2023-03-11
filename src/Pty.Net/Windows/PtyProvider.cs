@@ -89,9 +89,9 @@ namespace Pty.Net.Windows
         {
             bool isWow64 = Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432") != null;
             var windir = Environment.GetEnvironmentVariable("WINDIR");
-            var sysnativePath = Path.Combine(windir, "Sysnative");
+            var sysnativePath = Path.Combine(windir!, "Sysnative");
             var sysnativePathWithSlash = sysnativePath + Path.DirectorySeparatorChar;
-            var system32Path = Path.Combine(windir, "System32");
+            var system32Path = Path.Combine(windir!, "System32");
             var system32PathWithSlash = system32Path + Path.DirectorySeparatorChar;
 
             try
@@ -138,8 +138,16 @@ namespace Pty.Net.Windows
                 throw new ArgumentException($"Terminal app path '{app}' is too long");
             }
 
-            string pathEnvironment = (env != null && env.TryGetValue("PATH", out string p) ? p : null)
-                ?? Environment.GetEnvironmentVariable("PATH");
+            string pathEnvironment = 
+                    (
+                        env != null
+                        &&
+                        env.TryGetValue("PATH", out string? p)
+                        ?
+                        p
+                        : null
+                    )
+                    ?? Environment.GetEnvironmentVariable("PATH")!;
 
             if (string.IsNullOrWhiteSpace(pathEnvironment))
             {

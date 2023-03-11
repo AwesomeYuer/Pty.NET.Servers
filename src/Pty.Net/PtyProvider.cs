@@ -63,7 +63,7 @@ namespace Pty.Net
                 environment = new Dictionary<string, string>(PlatformServices.EnvironmentVariableComparer);
                 foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
                 {
-                    environment[entry.Key.ToString()] = entry.Value.ToString();
+                    environment[entry.Key.ToString()!] = entry.Value!.ToString()!;
                 }
             }
 

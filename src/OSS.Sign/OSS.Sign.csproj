@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <IsPackable>false</IsPackable>
+    <TargetFramework>net6.0</TargetFramework>
+    
   </PropertyGroup>
 
-  <ItemGroup>
+  <!--<ItemGroup>
     <PackageReference Remove="Nerdbank.GitVersioning" />
-  </ItemGroup>
+  </ItemGroup>-->
 
-  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+  <!--<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
     <ItemGroup>
       <OpenConsoleFiles Include="$(OpenConsoleReleasePath)\Win32\Release\conpty.dll" Condition="Exists($(OpenConsoleReleasePath))">
         <PackagePath>x86</PackagePath>
@@ -43,7 +43,7 @@
   </Target>
 
   <Target Name="SetupFilesToSign" BeforeTargets="CollectFilesToSign">
-    <!--The publish step below pulls from the intermediate output path so we need to sign the intermediate assembly instead of the target path assembly so publish gets the signed version of the file-->
+    --><!--The publish step below pulls from the intermediate output path so we need to sign the intermediate assembly instead of the target path assembly so publish gets the signed version of the file--><!--
     <ItemGroup>
       <FilesToSign Include="$(OutputPath)\winpty\**\*">
         <Authenticode>3PartySHA2</Authenticode>
@@ -63,5 +63,5 @@
     </ItemGroup>
     <Copy SourceFiles="@(SignedWinPty)" DestinationFolder="$(RepoRootPath)\bin\winpty\%(SignedWinPty.RecursiveDir)" />
     <Copy SourceFiles="@(SignedOpenConsole)" DestinationFolder="$(RepoRootPath)\bin\conpty\%(SignedOpenConsole.RecursiveDir)" />
-  </Target>
+  </Target>-->
 </Project>

@@ -3,14 +3,13 @@
 
 namespace Pty.Net.Windows
 {
+    using Microsoft.Win32.SafeHandles;
     using System;
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Runtime.ConstrainedExecution;
     using System.Runtime.InteropServices;
     using System.Security;
-    using System.Text;
-    using Microsoft.Win32.SafeHandles;
 
     internal static class NativeMethods
     {
@@ -21,19 +20,29 @@ namespace Pty.Net.Windows
         internal const int EXTENDED_STARTUPINFO_PRESENT = 0x00080000;
         internal const int STARTF_USESTDHANDLES = 0x00000100;
 
-        internal static readonly IntPtr PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE = new IntPtr(
-            22 // ProcThreadAttributePseudoConsole
-            | 0x20000); // PROC_THREAD_ATTRIBUTE_INPUT - Attribute is input only
+        internal static readonly IntPtr PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE =
+                                new IntPtr
+                                        (
+                                            22 // ProcThreadAttributePseudoConsole
+                                            |
+                                            0x20000 // PROC_THREAD_ATTRIBUTE_INPUT - Attribute is input only
+                                        );
 
         internal static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
 
-        private static readonly Lazy<bool> IsPseudoConsoleSupportedLazy = new Lazy<bool>(
-            () =>
-            {
-                IntPtr hLibrary = LoadLibraryW("kernel32.dll");
-                return hLibrary != IntPtr.Zero && GetProcAddress(hLibrary, "CreatePseudoConsole") != IntPtr.Zero;
-            },
-            isThreadSafe: true);
+        private static readonly Lazy<bool> IsPseudoConsoleSupportedLazy =
+                                new Lazy<bool>
+                                        (
+                                            () =>
+                                            {
+                                                IntPtr hLibrary = LoadLibraryW("kernel32.dll");
+                                                return 
+                                                    hLibrary != IntPtr.Zero
+                                                    &&
+                                                    GetProcAddress(hLibrary, "CreatePseudoConsole") != IntPtr.Zero;
+                                            }
+                                            , isThreadSafe: true
+                                        );
 
         internal static bool IsPseudoConsoleSupported => IsPseudoConsoleSupportedLazy.Value;
 
@@ -115,11 +124,13 @@ namespace Pty.Net.Windows
         [DllImport("kernel32.dll", SetLastError = true)]
         [SecurityCritical]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool CreatePipe(
-            out SafePipeHandle hReadPipe,           // PHANDLE hReadPipe,                       // read handle
-            out SafePipeHandle hWritePipe,          // PHANDLE hWritePipe,                      // write handle
-            SECURITY_ATTRIBUTES? pipeAttributes,    // LPSECURITY_ATTRIBUTES lpPipeAttributes,  // security attributes
-            int size);                              // DWORD nSize                              // pipe size
+        internal static extern bool CreatePipe
+                                            (
+                                                out SafePipeHandle hReadPipe            // PHANDLE hReadPipe,                       // read handle
+                                                , out SafePipeHandle hWritePipe         // PHANDLE hWritePipe,                      // write handle
+                                                , SECURITY_ATTRIBUTES? pipeAttributes   // LPSECURITY_ATTRIBUTES lpPipeAttributes,  // security attributes
+                                                , int size                              // DWORD nSize                              // pipe size
+                                            );
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern IntPtr LoadLibraryW([MarshalAs(UnmanagedType.LPWStr)] string libName);
@@ -217,9 +228,11 @@ namespace Pty.Net.Windows
                 bool wasInitialized = InitializeProcThreadAttributeList(IntPtr.Zero, AttributeCount, 0, ref size);
                 if (wasInitialized || size == IntPtr.Zero)
                 {
-                    throw new InvalidOperationException(
-                        $"Couldn't get the size of the process attribute list for {AttributeCount} attributes",
-                        new Win32Exception());
+                    throw new InvalidOperationException
+                                    (
+                                        $"Couldn't get the size of the process attribute list for {AttributeCount} attributes"
+                                        , new Win32Exception()
+                                    );
                 }
 
                 this.lpAttributeList = Marshal.AllocHGlobal(size);
@@ -236,14 +249,16 @@ namespace Pty.Net.Windows
                 }
 
                 // Set thread attribute list's Pseudo Console to the specified ConPTY
-                wasInitialized = UpdateProcThreadAttribute(
-                    this.lpAttributeList,
-                    0,
-                    PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-                    handle.Handle,
-                    (IntPtr)Marshal.SizeOf<IntPtr>(),
-                    IntPtr.Zero,
-                    IntPtr.Zero);
+                wasInitialized = UpdateProcThreadAttribute
+                                            (
+                                                this.lpAttributeList,
+                                                0,
+                                                PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+                                                handle.Handle,
+                                                (IntPtr) Marshal.SizeOf<IntPtr>(),
+                                                IntPtr.Zero,
+                                                IntPtr.Zero
+                                            );
 
                 if (!wasInitialized)
                 {
