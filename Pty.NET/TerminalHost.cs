@@ -129,8 +129,8 @@ public class PtyTerminalHost<TConection>
     public async Task<bool> ExitAsync()
     {
         ListeningTerminalOutputCancellationTokenSource.Cancel();
-        var TimeoutToken = ListeningTerminalOutputCancellationTokenSource.Token;
-        using (TimeoutToken.Register(() => _processExitedTcs.TrySetCanceled(TimeoutToken)))
+        var timeoutToken = ListeningTerminalOutputCancellationTokenSource.Token;
+        using (timeoutToken.Register(() => _processExitedTcs.TrySetCanceled(timeoutToken)))
         {
             uint exitCode = await _processExitedTcs.Task;
             return
