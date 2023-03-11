@@ -15,9 +15,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SECURITY.md = SECURITY.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pty.NET.WebSockets.Server.Linux", "Pty.NET.WebSockets.Server.Linux\Pty.NET.WebSockets.Server.Linux.csproj", "{F56B34E4-0AEE-40E2-B93D-3FF72693793E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.TcpListener.Server", "Pty.NET.TcpListener.Server\Pty.NET.TcpListener.Server.csproj", "{3C5E86FE-71EB-409A-8FA2-962AF74E80D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.TcpListener.Server.Linux", "Pty.NET.TcpListener.Server.Linux\Pty.NET.TcpListener.Server.Linux.csproj", "{ADBC7A58-A3FB-4C89-8BEF-81474308A414}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.WebSockets.Server", "Pty.NET.WebSockets.Server\Pty.NET.WebSockets.Server.csproj", "{B0EDF318-9D43-4C1D-BC1D-008E991A5D4B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,14 +33,14 @@ Global
 		{754658E9-246D-4D57-94F5-23D391552045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{754658E9-246D-4D57-94F5-23D391552045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{754658E9-246D-4D57-94F5-23D391552045}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C5E86FE-71EB-409A-8FA2-962AF74E80D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C5E86FE-71EB-409A-8FA2-962AF74E80D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C5E86FE-71EB-409A-8FA2-962AF74E80D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C5E86FE-71EB-409A-8FA2-962AF74E80D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0EDF318-9D43-4C1D-BC1D-008E991A5D4B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0EDF318-9D43-4C1D-BC1D-008E991A5D4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0EDF318-9D43-4C1D-BC1D-008E991A5D4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0EDF318-9D43-4C1D-BC1D-008E991A5D4B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

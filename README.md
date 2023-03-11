@@ -13,10 +13,10 @@ dotnet build
 dotnet test
 
 # run TcpListener.Server.Linux
-dotnet run -p Pty.NET.TcpListener.Server.Linux/Pty.NET.TcpListener.Server.Linux.csproj
+dotnet run -p Pty.NET.TcpListener.Server/Pty.NET.TcpListener.Server.csproj
 
 # run WebSockets.Server.Linux
-dotnet run -p Pty.NET.WebSockets.Server.Linux/Pty.NET.WebSockets.Server.Linux.csproj
+dotnet run -p Pty.NET.WebSockets.Server/Pty.NET.WebSockets.Server.csproj
 
 ```
 
