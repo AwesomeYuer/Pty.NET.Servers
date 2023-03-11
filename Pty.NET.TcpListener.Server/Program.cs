@@ -31,7 +31,7 @@ try
                             // Get a stream object for reading and writing
                             var networkStream = tcpClient.GetStream();
 
-                            var ptyTerminalHost = new PtyTerminalHost<NetworkStream>(networkStream)
+                            using var ptyTerminalHost = new PtyTerminalHost<NetworkStream>(networkStream)
                             {
                                 Options = new PtyOptions
                                                 {
