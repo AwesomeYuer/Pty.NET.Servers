@@ -97,10 +97,10 @@ try
                                 if 
                                     (
                                         b == 0x0D   // enter
-                                        ||
-                                        b == 0x26   // up
-                                        ||
-                                        b == 0x28   // down
+                                        //||
+                                        //b == 0x26   // up
+                                        //||
+                                        //b == 0x28   // down
                                     )
                                 {
                                     await ptyTerminalHost.Terminal!.WriterStream.WriteAsync(bytes, 0, p, timeoutToken);
