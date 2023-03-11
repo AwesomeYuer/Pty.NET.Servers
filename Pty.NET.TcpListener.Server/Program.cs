@@ -80,8 +80,8 @@ try
                                         b != 0x0D
                                         //&&
                                         //b != 0x27
-                                        //&&
-                                        //!char.IsControl(c)
+                                        &&
+                                        !char.IsControl(c)
                                     )
                                 {
                                     Console.WriteLine($"socket writing {c} ... @ {DateTime.Now}");
