@@ -3,7 +3,7 @@
 # Support only for Linux
 ## Usage
 
-### Run Command Pty.NET.TcpListener.Linux.Server on WSL or Linux as below:
+### Run `Pty.NET.TcpListener.Linux.Server` command on WSL or Linux as below:
 ```sh
 
 dotnet build
@@ -14,7 +14,7 @@ dotnet run -p Pty.NET.TcpListener.Linux.Server/Pty.NET.TcpListener.Linux.Server.
 
 ```
 
-### Run Command telent on Linux/Windows/MacOS as below:
+### Run telent client command on Linux/Windows/MacOS as below:
 ```sh
 
 telnet telnet 13000
