@@ -1,7 +1,0 @@
-steps:
-- task: PowerShell@2
-  inputs:
-    filePath: azure-pipelines/artifacts/_pipelines.ps1
-    arguments: -ArtifactNameSuffix "-$(Agent.JobName)"
-  displayName: Publish artifacts
-  condition: succeededOrFailed()

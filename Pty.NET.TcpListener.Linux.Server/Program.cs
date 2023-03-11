@@ -236,24 +236,6 @@ try
     {
         tcpListener.Stop();
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
     //FakeAssert.True(await checkTerminalOutputAsync);
 }
 catch (Exception exception)
