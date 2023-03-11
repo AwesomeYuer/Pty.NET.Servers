@@ -77,14 +77,14 @@ try
                                 char c = (char) r;
                                 if 
                                     (
-                                        r != 0x0D
+                                        b != 0x0D
                                         //&&
-                                        //!char.IsSymbol(c)
+                                        //b != 0x27
                                         //&&
                                         //!char.IsControl(c)
                                     )
                                 {
-                                    Console.WriteLine($"socket writing {(char) b} ... @ {DateTime.Now}");
+                                    Console.WriteLine($"socket writing {c} ... @ {DateTime.Now}");
                                     networkStream.WriteByte((byte) '\b');
                                     networkStream.WriteByte(b);
                                 }
@@ -96,19 +96,17 @@ try
 
                                 if 
                                     (
-                                        r == 0x0D   // enter
+                                        b == 0x0D   // enter
                                         ||
-                                        r == 0x26   // up
+                                        b == 0x26   // up
                                         ||
-                                        r == 0x28   // down
+                                        b == 0x28   // down
                                     )
                                 {
                                     await ptyTerminalHost.Terminal!.WriterStream.WriteAsync(bytes, 0, p, timeoutToken);
                                     await ptyTerminalHost.Terminal!.WriterStream.FlushAsync(timeoutToken);
                                     p = 0;
                                 }
-
-
                             }
                         }
                     ).Start();
