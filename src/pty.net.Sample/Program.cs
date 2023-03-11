@@ -136,7 +136,6 @@ catch (OperationCanceledException exception)
 
 try
 {
-
     TcpListener tcpListener = null!;
     try
     {
