@@ -163,25 +163,6 @@ catch (OperationCanceledException exception)
                     );
 };
 
-//terminal.Resize(40, 10);
-
-//terminal.Dispose();
-
-//using (TimeoutToken.Register(() => processExitedTcs.TrySetCanceled(TimeoutToken)))
-//{
-//    uint exitCode = await processExitedTcs.Task;
-//    FakeAssert
-//            .True
-//                (
-//                    exitCode == CtrlCExitCode   // WinPty terminal exit code.
-//                    ||
-//                    exitCode == 1               // Pseudo Console exit code on Win 10.
-//                    ||
-//                    exitCode == 0               // pty exit code on *nix.
-//                );
-//}
-
-
 try
 {
     TcpListener tcpListener = null!;
@@ -265,7 +246,23 @@ catch (Exception exception)
                         );
 }
 
+terminal.Resize(40, 10);
 
+terminal.Dispose();
+
+using (TimeoutToken.Register(() => processExitedTcs.TrySetCanceled(TimeoutToken)))
+{
+    uint exitCode = await processExitedTcs.Task;
+    FakeAssert
+            .True
+                (
+                    exitCode == CtrlCExitCode   // WinPty terminal exit code.
+                    ||
+                    exitCode == 1               // Pseudo Console exit code on Win 10.
+                    ||
+                    exitCode == 0               // pty exit code on *nix.
+                );
+}
 
 FakeAssert.True(terminal.WaitForExit(TestTimeoutMs));
 
