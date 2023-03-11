@@ -1,11 +1,11 @@
 ﻿using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Pty.NET;
 
 public class PtyTerminalHost<TConection> 
-            : //IDisposable where TConection : IDisposable
-                IAsyncDisposable  , IDisposable
+                            : //IDisposable where TConection : IDisposable
+                                IAsyncDisposable
+                                , IDisposable
 {
     private const uint _ctrlCExitCode = 0xC000013A;
 
@@ -13,7 +13,14 @@ public class PtyTerminalHost<TConection>
 
     public readonly TConection Conection;
 
-    private readonly string _consoleHost = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Path.Combine(Environment.SystemDirectory, "cmd.exe") : "sh";
+    private readonly string _consoleHost =
+                                    RuntimeInformation
+                                                .IsOSPlatform
+                                                        (OSPlatform.Windows)
+                                    ?
+                                    Path.Combine(Environment.SystemDirectory, "cmd.exe")
+                                    :
+                                    "sh";
 
     public readonly CancellationTokenSource ListeningTerminalOutputCancellationTokenSource;
 
@@ -45,18 +52,22 @@ public class PtyTerminalHost<TConection>
 
     public async Task StartListenTerminalOutputAsync
                         (
-                            Func<PtyTerminalHost<TConection>, ArraySegment<byte>, Task<bool>>
-                                                onCheckedTerminalOutputProcessFuncAsync
+                            Func
+                                <
+                                    PtyTerminalHost<TConection>
+                                    , ArraySegment<byte>
+                                    , Task<bool>
+                                >
+                                    onCheckedTerminalOutputProcessFuncAsync
                         )
     {
         if (Terminal is null)
         {
-            Options!.App = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Path.Combine(Environment.SystemDirectory, "cmd.exe") : "sh";
+            Options!.App = _consoleHost;
             Terminal = await PtyProvider.SpawnAsync(Options!, ListeningTerminalOutputCancellationTokenSource.Token);
             Terminal.ProcessExited += (sender, e) => _processExitedTcs.TrySetResult((uint)Terminal.ExitCode);
         }
         string output = string.Empty;
-        var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
         var checkTerminalOutputAsync =
                 Task
                     .Run
@@ -146,7 +157,3 @@ public class PtyTerminalHost<TConection>
         return default;
     }
 }
-
-    
-    
-
