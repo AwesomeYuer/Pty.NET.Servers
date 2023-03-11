@@ -1,5 +1,5 @@
 # Pty.NET.Servers
-- Create By AwesomeYuer@Microshaoft
+- Create By AwesomeYuer
 - It's only a too simple sample for using Pty.NET
 - Support only for Linux
 
