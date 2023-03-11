@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Text;
 using System.Diagnostics;
+using System.Net.Sockets;
+using System.Net;
 
 Console.WriteLine("Hello, World!");
 
@@ -94,6 +96,8 @@ var checkTerminalOutputAsync =
                                                 .Replace("\n", string.Empty);
                                 output = ansiRegex.Replace(output, string.Empty);
 
+                                Console.WriteLine( output );
+
                                 var index = output.IndexOf(Data);
                                 if (index >= 0)
                                 {
@@ -109,7 +113,7 @@ var checkTerminalOutputAsync =
                                     }
                                 }
                             }
-
+                            Console.WriteLine("while finished!");
                             firstOutput.TrySetCanceled();
                             firstDataFound.TrySetCanceled();
                             return false;
@@ -132,14 +136,91 @@ catch (OperationCanceledException exception)
 
 try
 {
-    byte[] commandBuffer = encoding.GetBytes("echo " + Data);
-    await terminal.WriterStream.WriteAsync(commandBuffer, 0, commandBuffer.Length, TimeoutToken);
-    await terminal.WriterStream.FlushAsync();
 
-    await firstDataFound.Task;
+    TcpListener server = null!;
+    try
+    {
+        // Set the TcpListener on port 13000.
+        int port = 13000;
+        IPAddress localAddr = IPAddress.Parse("127.0.0.1");
 
-    await terminal.WriterStream.WriteAsync(new byte[] { 0x0D }, 0, 1, TimeoutToken); // Enter
-    await terminal.WriterStream.FlushAsync();
+        // TcpListener server = new TcpListener(port);
+        server = new TcpListener(localAddr, port);
+
+        // Start listening for client requests.
+        server.Start();
+
+        // Buffer for reading data
+        byte[] bytes = new byte[256];
+
+        // Enter the listening loop.
+        while (true)
+        {
+            Console.Write("Waiting for a connection... ");
+            Thread.Sleep(100);
+
+            // Perform a blocking call to accept requests.
+            // You could also use server.AcceptSocket() here.
+            using TcpClient client = server.AcceptTcpClient();
+            Console.WriteLine("Connected!");
+
+            // Get a stream object for reading and writing
+            NetworkStream stream = client.GetStream();
+
+            int r;
+
+            // Loop to receive all the data sent by the client.
+            while (1 == 1)
+            {
+                Console.WriteLine($"socket reading ... @ {DateTime.Now}");
+                r = await stream.ReadAsync(bytes, 0, bytes.Length);
+                if (r == 0)
+                {
+                    Thread.Sleep(100);
+                    continue;
+                }
+                await terminal.WriterStream.WriteAsync(bytes, 0, bytes.Length, TimeoutToken);
+                await terminal.WriterStream.FlushAsync();
+
+                await firstDataFound.Task;
+
+                await terminal.WriterStream.WriteAsync(new byte[] { 0x0D }, 0, 1, TimeoutToken); // Enter
+                await terminal.WriterStream.FlushAsync();
+                var buffer = new byte[64 * 1024];
+                var rr = await terminal.ReaderStream.ReadAsync(buffer, 0, buffer.Length);
+                if (rr > 0)
+                {
+                    await stream.WriteAsync(buffer, 0, rr);
+                }
+            }
+            Console.WriteLine($"socket reading finished!!! @ {DateTime.Now}");
+        }
+    }
+    catch (SocketException e)
+    {
+        Console.WriteLine("SocketException: {0}", e);
+    }
+    finally
+    {
+        server.Stop();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
     FakeAssert.True(await checkTerminalOutputAsync);
 }
@@ -173,7 +254,7 @@ using (TimeoutToken.Register(() => processExitedTcs.TrySetCanceled(TimeoutToken)
 FakeAssert.True(terminal.WaitForExit(TestTimeoutMs));
 
 Console.WriteLine("Finished!!!");
-//Console.ReadLine();
+Console.ReadLine();
 
 
 public static class FakeAssert
