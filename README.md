@@ -21,7 +21,7 @@ dotnet run -p Pty.NET.TcpListener.Linux.Server/Pty.NET.TcpListener.Linux.Server.
 
 telnet localhost 13000
 
-# and then input Linux command
+# Then input any Linux command you want
 
 whoami
 
