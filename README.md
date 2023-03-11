@@ -1,18 +1,22 @@
-# Pty.NET.TcpListener.Linux.Server
+# Pty.NET.Servers
 - Create By AwesomeYuer@Microshaoft
 - It's only a too simple sample for using Pty.NET
 - Support only for Linux
 
 ## Usage:
 
-### Run `Pty.NET.TcpListener.Linux.Server` command on WSL or other Linux as below:
+### Run `Pty.NET.Servers` command on WSL or other Linux as below:
 ```sh
 
 dotnet build
 
 dotnet test
 
+# run TcpListener.Server.Linux
 dotnet run -p Pty.NET.TcpListener.Server.Linux/Pty.NET.TcpListener.Server.Linux.csproj
+
+# run WebSockets.Server.Linux
+dotnet run -p Pty.NET.WebSockets.Server.Linux/Pty.NET.WebSockets.Server.Linux.csproj
 
 ```
 
