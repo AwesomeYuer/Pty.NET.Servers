@@ -1,10 +1,11 @@
 # Pty.NET.TcpListener.Linux.Server
-## Create By AwesomeYuer@Microshaoft
-## It's only a too simple sample for using Pty.NET
-## Support only for Linux
-### Usage
+- Create By AwesomeYuer@Microshaoft
+- It's only a too simple sample for using Pty.NET
+- Support only for Linux
 
-#### Run `Pty.NET.TcpListener.Linux.Server` command on WSL or Linux as below:
+## Usage:
+
+### Run `Pty.NET.TcpListener.Linux.Server` command on WSL or Linux as below:
 ```sh
 
 dotnet build
@@ -15,7 +16,7 @@ dotnet run -p Pty.NET.TcpListener.Linux.Server/Pty.NET.TcpListener.Linux.Server.
 
 ```
 
-#### Run `telent` client command on Linux/Windows/MacOS as below:
+### Run `telent` client command on Linux/Windows/MacOS as below:
 ```sh
 
 telnet telnet 13000
