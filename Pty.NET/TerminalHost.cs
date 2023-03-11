@@ -84,7 +84,7 @@ public class PtyTerminalHost<TConection>
                                 var runningCancellationToken = ListeningTerminalOutputCancellationTokenSource.Token;
                                 while
                                     (
-                                        !ListeningTerminalOutputCancellationTokenSource.Token.IsCancellationRequested
+                                        !runningCancellationToken.IsCancellationRequested
                                         &&
                                         !_processExitedTcs.Task.IsCompleted
                                     )
