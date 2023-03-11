@@ -6,6 +6,12 @@
 		<ImplicitUsings>enable</ImplicitUsings>
     </PropertyGroup>
 
+	<ItemGroup>
+	  <Compile Remove="Windows\**" />
+	  <EmbeddedResource Remove="Windows\**" />
+	  <None Remove="Windows\**" />
+	</ItemGroup>
+
   <!--<ItemGroup>
     <None Include="$(WinptyReleasePath)\x64\*.dll;$(WinptyReleasePath)\x64\*.exe">
       <Visible>false</Visible>

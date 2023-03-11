@@ -12,7 +12,10 @@ namespace Pty.Net
     /// </summary>
     internal static class PlatformServices
     {
-        private static readonly Lazy<IPtyProvider> WindowsProviderLazy = new Lazy<IPtyProvider>(() => new Windows.PtyProvider());
+        private static readonly Lazy<IPtyProvider> WindowsProviderLazy = 
+                //new Lazy<IPtyProvider>(() => new Windows.PtyProvider())
+                null!
+                ;
         private static readonly Lazy<IPtyProvider> LinuxProviderLazy = new Lazy<IPtyProvider>(() => new Linux.PtyProvider());
         private static readonly Lazy<IPtyProvider> MacProviderLazy = new Lazy<IPtyProvider>(() => new Mac.PtyProvider());
         private static readonly Lazy<IPtyProvider> PtyProviderLazy;

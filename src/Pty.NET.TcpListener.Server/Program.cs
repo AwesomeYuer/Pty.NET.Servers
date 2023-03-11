@@ -9,9 +9,22 @@ using System.Net;
 
 Console.WriteLine("Hello, World!");
 
+
+var aa = new byte[]
+            { 1, 2, 3, 4, 15, 14, 15 }
+                .TakeTopFirst
+                    (
+                        (x) =>
+                        {
+                            return x == 0x0D;
+                        }
+                    ).ToArray();
+
+//return;
+
 const uint CtrlCExitCode = 0xC000013A;
 
-int TestTimeoutMs = Debugger.IsAttached ? 300_000 : 5_000;
+int TestTimeoutMs = Debugger.IsAttached ? 300_0000 : 5_000;
 
 CancellationToken TimeoutToken = new CancellationTokenSource(TestTimeoutMs).Token;
 
@@ -30,8 +43,15 @@ var options = new PtyOptions
                             , App = app
                             , Environment = new Dictionary<string, string>()
                                                     {
-                                                          { "FOO", "bar" }
-                                                        , { "Bazz", string.Empty }
+                                                            { 
+                                                                "FOO"
+                                                                , "bar" 
+                                                            }
+                                                        , 
+                                                            {
+                                                                "Bazz"
+                                                                , string.Empty 
+                                                            }
                                                         ,
                                                     },
                         };
@@ -53,6 +73,9 @@ string GetTerminalExitCode() =>
 var firstOutput = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
 var firstDataFound = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
 var output = string.Empty;
+
+NetworkStream networkStream = null!;
+
 var checkTerminalOutputAsync =
             Task
                 .Run
@@ -83,9 +106,16 @@ var checkTerminalOutputAsync =
                                                                 , buffer.Length
                                                                 , TimeoutToken
                                                             );
+
+                                if (networkStream != null)
+                                { 
+                                    await networkStream.WriteAsync( buffer , 0 , count);
+                                }
+
+
                                 if (count == 0)
                                 {
-                                    break;
+                                    //break;
                                 }
 
                                 firstOutput.TrySetResult(null);
@@ -132,7 +162,7 @@ catch (OperationCanceledException exception)
                         $"Could not get any output from terminal{GetTerminalExitCode()}"
                         , exception
                     );
-}
+};
 
 try
 {
@@ -140,15 +170,12 @@ try
     try
     {
         int port = 13000;
-        IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
-
-        tcpListener = new TcpListener(ipAddress, port);
+        tcpListener = new TcpListener(IPAddress.Any, port);
 
         // Start listening for client requests.
         tcpListener.Start();
 
         // Buffer for reading data
-        byte[] bytes = new byte[64 * 1024];
 
         // Enter the listening loop.
         while (true)
@@ -162,41 +189,49 @@ try
             Console.WriteLine("Connected!");
 
             // Get a stream object for reading and writing
-            NetworkStream networkStream = tcpClient.GetStream();
+            networkStream = tcpClient.GetStream();
 
-            int r;
+            
+            var p = 0;
+            var bytes = new byte[64 * 1024];
 
-            // Loop to receive all the data sent by the client.
             while (1 == 1)
             {
                 Console.WriteLine($"socket reading ... @ {DateTime.Now}");
-                r = await networkStream.ReadAsync(bytes, 0, bytes.Length);
-                if (r == 0)
+                int r = networkStream.ReadByte();
+                if (r < 0)
                 {
                     Thread.Sleep(100);
                     continue;
                 }
-                await terminal.WriterStream.WriteAsync(bytes, 0, bytes.Length, TimeoutToken);
-                await terminal.WriterStream.FlushAsync();
-
-                await firstDataFound.Task;
-
-                await terminal.WriterStream.WriteAsync(new byte[] { 0x0D }, 0, 1, TimeoutToken); // Enter
-                await terminal.WriterStream.FlushAsync();
-                var buffer = new byte[64 * 1024];
-                var rr = await terminal.ReaderStream.ReadAsync(buffer, 0, buffer.Length);
-                if (rr > 0)
+                byte b = (byte) r;
+                if (r != 0x0D)
                 {
-                    await networkStream.WriteAsync(buffer, 0, rr);
+                    Console.WriteLine($"socket writing {b} ... @ {DateTime.Now}");
+                    networkStream.WriteByte((byte) '\b');
+                    networkStream.WriteByte(b);
+                }
+                //continue;
+                var buffer = new byte[] { b };
+                var l = buffer.Length;
+                Buffer.BlockCopy(buffer, 0, bytes, p, l);
+                p += l;
+
+                if (r == 0x0D)
+                {
+                    await terminal.WriterStream.WriteAsync(bytes, 0, p, TimeoutToken);
+                    await terminal.WriterStream.FlushAsync(TimeoutToken);
+
+                    p = 0;
                 }
             }
-            Console.WriteLine($"socket reading finished!!! @ {DateTime.Now}");
+            //Console.WriteLine($"socket reading finished!!! @ {DateTime.Now}");
         }
     }
-    catch (SocketException e)
-    {
-        Console.WriteLine("SocketException: {0}", e);
-    }
+    //catch (SocketException e)
+    //{
+    //    Console.WriteLine("SocketException: {0}", e);
+    //}
     finally
     {
         tcpListener.Stop();
@@ -219,7 +254,7 @@ try
 
   
 
-    FakeAssert.True(await checkTerminalOutputAsync);
+    //FakeAssert.True(await checkTerminalOutputAsync);
 }
 catch (Exception exception)
 {
@@ -263,5 +298,26 @@ public static class FakeAssert
             throw new Exception($"{nameof(FakeAssert)}.{nameof(FakeAssert.True)} is failed!");
         }
         return condition;
+    }
+}
+
+
+public static class LinqHelper
+{ 
+    public static IEnumerable<T>
+                                TakeTopFirst<T>
+                                    (
+                                        this IEnumerable<T> @this
+                                        , Func<T, bool> predicate
+                                    )
+    {
+        foreach (var t in @this)
+        {
+            yield return t;
+            if (predicate(t))
+            {
+                break;            
+            }
+        }
     }
 }
