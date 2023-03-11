@@ -64,7 +64,13 @@ public class PtyTerminalHost<TConection>
         if (Terminal is null)
         {
             Options!.App = _consoleHost;
-            Terminal = await PtyProvider.SpawnAsync(Options!, ListeningTerminalOutputCancellationTokenSource.Token);
+            Terminal = await PtyProvider
+                                    .SpawnAsync
+                                            (
+                                                Options!
+                                                , ListeningTerminalOutputCancellationTokenSource
+                                                                                                .Token
+                                            );
             Terminal.ProcessExited += (sender, e) => _processExitedTcs.TrySetResult((uint)Terminal.ExitCode);
         }
         string output = string.Empty;
