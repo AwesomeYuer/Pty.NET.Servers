@@ -12,6 +12,10 @@
 	  <None Remove="Windows\**" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="NewFolder\" />
+	</ItemGroup>
+
   <!--<ItemGroup>
     <None Include="$(WinptyReleasePath)\x64\*.dll;$(WinptyReleasePath)\x64\*.exe">
       <Visible>false</Visible>

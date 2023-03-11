@@ -1,167 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using Pty.Net;
-using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
-using System.Text;
-using System.Diagnostics;
-using System.Net.Sockets;
+using Pty.NET;
+using System;
 using System.Net;
+using System.Net.Sockets;
 
-Console.WriteLine("Hello, World!");
-
-
-var aa = new byte[]
-            { 1, 2, 3, 4, 15, 14, 15 }
-                .TakeTopFirst
-                    (
-                        (x) =>
-                        {
-                            return x == 0x0D;
-                        }
-                    ).ToArray();
-
-//return;
-
-const uint CtrlCExitCode = 0xC000013A;
-
-int TestTimeoutMs = 300_0000;
-        //Debugger.IsAttached ? 300_0000 : 5_000;
-
-CancellationToken TimeoutToken = new CancellationTokenSource(TestTimeoutMs).Token;
-
-var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 const string Data = "abc✓ЖЖЖ①Ⅻㄨㄩ 啊阿鼾齄丂丄狚狛狜狝﨨﨩ˊˋ˙– ⿻〇㐀㐁䶴䶵";
-
-string host = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Path.Combine(Environment.SystemDirectory, "cmd.exe") : "sh";
-var options = new PtyOptions
-                        {
-                              Name = "Custom terminal"
-                            , Cols = Data.Length + Environment.CurrentDirectory.Length + 50
-                            , Rows = 25
-                            , Cwd = Environment.CurrentDirectory
-                            , App = host
-                            , Environment = new Dictionary<string, string>()
-                                                    {
-                                                            { 
-                                                                "FOO"
-                                                                , "bar" 
-                                                            }
-                                                        , 
-                                                            {
-                                                                "Bazz"
-                                                                , string.Empty 
-                                                            }
-                                                        ,
-                                                    },
-                        };
-
-IPtyConnection terminal = await PtyProvider.SpawnAsync(options, TimeoutToken);
-
-var processExitedTcs = new TaskCompletionSource<uint>();
-terminal.ProcessExited += (sender, e) => processExitedTcs.TrySetResult((uint)terminal.ExitCode);
-
-string GetTerminalExitCode() =>
-                            (
-                                processExitedTcs.Task.IsCompleted
-                                ? 
-                                $". Terminal process has exited with exit code {processExitedTcs.Task.GetAwaiter().GetResult()}."
-                                :
-                                string.Empty
-                            );
-
-var firstOutput = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
-var firstDataFound = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
-var output = string.Empty;
-
-NetworkStream networkStream = null!;
-
-var checkTerminalOutputAsync =
-            Task
-                .Run
-                    (
-                        async () =>
-                        {
-                            var buffer = new byte[4096];
-                            var ansiRegex =
-                                        new Regex
-                                                (
-                                                    @"[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PRZcf-ntqry=><~]))"
-                                                );
-
-                            while 
-                                (
-                                    !TimeoutToken.IsCancellationRequested
-                                    &&
-                                    !processExitedTcs.Task.IsCompleted
-                                )
-                            {
-                                int count =
-                                        await terminal
-                                                    .ReaderStream
-                                                    .ReadAsync
-                                                            (
-                                                                buffer
-                                                                , 0
-                                                                , buffer.Length
-                                                                , TimeoutToken
-                                                            );
-
-                                if (networkStream != null)
-                                { 
-                                    await networkStream.WriteAsync( buffer , 0 , count);
-                                }
-
-
-                                if (count == 0)
-                                {
-                                    //break;
-                                }
-
-                                firstOutput.TrySetResult(null);
-
-                                output += encoding.GetString(buffer, 0, count);
-                                output = output
-                                                .Replace("\r", string.Empty)
-                                                .Replace("\n", string.Empty);
-                                output = ansiRegex.Replace(output, string.Empty);
-
-                                Console.WriteLine( output );
-
-                                var index = output.IndexOf(Data);
-                                if (index >= 0)
-                                {
-                                    firstDataFound.TrySetResult(null);
-                                    if 
-                                        (
-                                            index <= output.Length - (2 * Data.Length)
-                                            &&
-                                            output.IndexOf(Data, index + Data.Length) >= 0
-                                        )
-                                    {
-                                        return true;
-                                    }
-                                }
-                            }
-                            Console.WriteLine("while finished!");
-                            firstOutput.TrySetCanceled();
-                            firstDataFound.TrySetCanceled();
-                            return false;
-                        }
-                    );
-
-try
-{
-    await firstOutput.Task;
-}
-catch (OperationCanceledException exception)
-{
-    throw
-        new InvalidOperationException
-                    (
-                        $"Could not get any output from terminal{GetTerminalExitCode()}"
-                        , exception
-                    );
-};
 
 try
 {
@@ -180,51 +24,94 @@ try
         while (true)
         {
             Console.Write("Waiting for a connection... ");
-            Thread.Sleep(100);
-
-            // Perform a blocking call to accept requests.
-            // You could also use server.AcceptSocket() here.
-            using TcpClient tcpClient = tcpListener.AcceptTcpClient();
+            TcpClient tcpClient = tcpListener.AcceptTcpClient();
             Console.WriteLine("Connected!");
+            new Thread
+                    (
+                        async () =>
+                        {
+                            // Get a stream object for reading and writing
+                            var networkStream = tcpClient.GetStream();
 
-            // Get a stream object for reading and writing
-            networkStream = tcpClient.GetStream();
+                            var ptyTerminalHost = new PtyTerminalHost<NetworkStream>(networkStream)
+                            {
+                                Options = new PtyOptions
+                                {
+                                    Name = "Custom terminal"
+                                    , Cols = Data.Length + Environment.CurrentDirectory.Length + 50
+                                    , Rows = 25
+                                    , Cwd = Environment.CurrentDirectory
+                                    , Environment = new Dictionary<string, string>()
+                                                            {
+                                                                  { "FOO", "bar" }
+                                                                , { "Bazz", string.Empty }
+                                                                ,
+                                                            },
+                                }
+                            };
+                            await ptyTerminalHost
+                                            .StartListenTerminalOutputAsync
+                                                (
+                                                    async (sender, data) =>
+                                                    {
+                                                        await sender.Conection.WriteAsync(data);
+                                                        return
+                                                            await Task.FromResult(true);
+                                                    }
+                                                );
 
-            
-            var p = 0;
-            var bytes = new byte[64 * 1024];
+                            var p = 0;
+                            var bytes = new byte[64 * 1024];
+                            var timeoutToken = ptyTerminalHost.ListeningTerminalOutputCancellationTokenSource.Token;
+                            
+                            while (1 == 1)
+                            {
+                                Console.WriteLine($"socket reading ... @ {DateTime.Now}");
+                                int r = networkStream.ReadByte();
+                                if (r < 0)
+                                {
+                                    Thread.Sleep(100);
+                                    continue;
+                                }
+                                byte b = (byte) r;
+                                char c = (char) r;
+                                if 
+                                    (
+                                        r != 0x0D
+                                        //&&
+                                        //!char.IsSymbol(c)
+                                        //&&
+                                        //!char.IsControl(c)
+                                    )
+                                {
+                                    Console.WriteLine($"socket writing {(char) b} ... @ {DateTime.Now}");
+                                    networkStream.WriteByte((byte) '\b');
+                                    networkStream.WriteByte(b);
+                                }
 
-            while (1 == 1)
-            {
-                Console.WriteLine($"socket reading ... @ {DateTime.Now}");
-                int r = networkStream.ReadByte();
-                if (r < 0)
-                {
-                    Thread.Sleep(100);
-                    continue;
-                }
-                byte b = (byte) r;
-                if (r != 0x0D)
-                {
-                    Console.WriteLine($"socket writing {b} ... @ {DateTime.Now}");
-                    networkStream.WriteByte((byte) '\b');
-                    networkStream.WriteByte(b);
-                }
-                //continue;
-                var buffer = new byte[] { b };
-                var l = buffer.Length;
-                Buffer.BlockCopy(buffer, 0, bytes, p, l);
-                p += l;
+                                var buffer = new byte[] { b };
+                                var l = buffer.Length;
+                                Buffer.BlockCopy(buffer, 0, bytes, p, l);
+                                p += l;
 
-                if (r == 0x0D)
-                {
-                    await terminal.WriterStream.WriteAsync(bytes, 0, p, TimeoutToken);
-                    await terminal.WriterStream.FlushAsync(TimeoutToken);
+                                if 
+                                    (
+                                        r == 0x0D   // enter
+                                        ||
+                                        r == 0x26   // up
+                                        ||
+                                        r == 0x28   // down
+                                    )
+                                {
+                                    await ptyTerminalHost.Terminal!.WriterStream.WriteAsync(bytes, 0, p, timeoutToken);
+                                    await ptyTerminalHost.Terminal!.WriterStream.FlushAsync(timeoutToken);
+                                    p = 0;
+                                }
 
-                    p = 0;
-                }
-            }
-            //Console.WriteLine($"socket reading finished!!! @ {DateTime.Now}");
+
+                            }
+                        }
+                    ).Start();
         }
     }
     //catch (SocketException e)
@@ -241,62 +128,7 @@ catch (Exception exception)
 {
     throw new InvalidOperationException
                         (
-                            $"Could not get expected data from terminal.{GetTerminalExitCode()} Actual terminal output:\n{output}"
+                            $"Could not get expected data from terminal.GetTerminalExitCode() Actual terminal output:\noutput"
                             , exception
                         );
-}
-
-terminal.Resize(40, 10);
-
-terminal.Dispose();
-
-using (TimeoutToken.Register(() => processExitedTcs.TrySetCanceled(TimeoutToken)))
-{
-    uint exitCode = await processExitedTcs.Task;
-    FakeAssert
-            .True
-                (
-                    exitCode == CtrlCExitCode   // WinPty terminal exit code.
-                    ||
-                    exitCode == 1               // Pseudo Console exit code on Win 10.
-                    ||
-                    exitCode == 0               // pty exit code on *nix.
-                );
-}
-
-FakeAssert.True(terminal.WaitForExit(TestTimeoutMs));
-
-Console.WriteLine("Finished!!!");
-Console.ReadLine();
-
-public static class FakeAssert
-{
-    public static bool True(bool condition)
-    {
-        if (!condition)
-        {
-            throw new Exception($"{nameof(FakeAssert)}.{nameof(FakeAssert.True)} is failed!");
-        }
-        return condition;
-    }
-}
-
-public static class LinqHelper
-{ 
-    public static IEnumerable<T>
-                                TakeTopFirst<T>
-                                    (
-                                        this IEnumerable<T> @this
-                                        , Func<T, bool> predicate
-                                    )
-    {
-        foreach (var t in @this)
-        {
-            yield return t;
-            if (predicate(t))
-            {
-                break;            
-            }
-        }
-    }
 }
