@@ -12,7 +12,7 @@ dotnet build
 
 dotnet test
 
-dotnet run -p Pty.NET.TcpListener.Linux.Server/Pty.NET.TcpListener.Linux.Server.csproj
+dotnet run -p Pty.NET.TcpListener.Server.Linux/Pty.NET.TcpListener.Server.Linux.csproj
 
 ```
 

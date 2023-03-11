@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET", "Pty.Net\Pty.NET.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.Linux.Tests", "Pty.NET.Linux.Tests\Pty.NET.Linux.Tests.csproj", "{754658E9-246D-4D57-94F5-23D391552045}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.TcpListener.Linux.Server", "Pty.NET.TcpListener.Linux.Server\Pty.NET.TcpListener.Linux.Server.csproj", "{BD13C54B-762E-454D-A9C3-735318643FFD}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{82230E13-F9E2-4E5E-81E2-E19466B7872E}"
 	ProjectSection(SolutionItems) = preProject
 		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
@@ -18,6 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pty.NET.WebSockets.Server.Linux", "Pty.NET.WebSockets.Server.Linux\Pty.NET.WebSockets.Server.Linux.csproj", "{F56B34E4-0AEE-40E2-B93D-3FF72693793E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.TcpListener.Server.Linux", "Pty.NET.TcpListener.Server.Linux\Pty.NET.TcpListener.Server.Linux.csproj", "{ADBC7A58-A3FB-4C89-8BEF-81474308A414}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,14 +33,14 @@ Global
 		{754658E9-246D-4D57-94F5-23D391552045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{754658E9-246D-4D57-94F5-23D391552045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{754658E9-246D-4D57-94F5-23D391552045}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BD13C54B-762E-454D-A9C3-735318643FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BD13C54B-762E-454D-A9C3-735318643FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BD13C54B-762E-454D-A9C3-735318643FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BD13C54B-762E-454D-A9C3-735318643FFD}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F56B34E4-0AEE-40E2-B93D-3FF72693793E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADBC7A58-A3FB-4C89-8BEF-81474308A414}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
