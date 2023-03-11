@@ -29,8 +29,6 @@ int TestTimeoutMs = 300_0000;
 
 CancellationToken TimeoutToken = new CancellationTokenSource(TestTimeoutMs).Token;
 
-
-
 var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 const string Data = "abc✓ЖЖЖ①Ⅻㄨㄩ 啊阿鼾齄丂丄狚狛狜狝﨨﨩ˊˋ˙– ⿻〇㐀㐁䶴䶵";
 
@@ -271,7 +269,6 @@ FakeAssert.True(terminal.WaitForExit(TestTimeoutMs));
 Console.WriteLine("Finished!!!");
 Console.ReadLine();
 
-
 public static class FakeAssert
 {
     public static bool True(bool condition)
@@ -283,7 +280,6 @@ public static class FakeAssert
         return condition;
     }
 }
-
 
 public static class LinqHelper
 { 
