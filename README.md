@@ -12,10 +12,10 @@ dotnet build
 
 dotnet test
 
-# run TcpListener.Server
+# run TcpListener Server
 dotnet run -p Pty.NET.TcpListener.Server/Pty.NET.TcpListener.Server.csproj
 
-# run WebSockets.Server
+# run WebSockets Server
 dotnet run -p Pty.NET.WebSockets.Server/Pty.NET.WebSockets.Server.csproj
 
 ```
