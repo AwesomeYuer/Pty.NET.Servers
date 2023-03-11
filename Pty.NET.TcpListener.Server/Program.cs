@@ -34,18 +34,18 @@ try
                             var ptyTerminalHost = new PtyTerminalHost<NetworkStream>(networkStream)
                             {
                                 Options = new PtyOptions
-                                {
-                                    Name = "Custom terminal"
-                                    , Cols = Data.Length + Environment.CurrentDirectory.Length + 50
-                                    , Rows = 25
-                                    , Cwd = Environment.CurrentDirectory
-                                    , Environment = new Dictionary<string, string>()
-                                                            {
-                                                                  { "FOO", "bar" }
-                                                                , { "Bazz", string.Empty }
-                                                                ,
-                                                            },
-                                }
+                                                {
+                                                    Name = "Custom terminal"
+                                                    , Cols = Data.Length + Environment.CurrentDirectory.Length + 50
+                                                    , Rows = 25
+                                                    , Cwd = Environment.CurrentDirectory
+                                                    , Environment = new Dictionary<string, string>()
+                                                                            {
+                                                                                    { "FOO", "bar" }
+                                                                                , { "Bazz", string.Empty }
+                                                                                ,
+                                                                            },
+                                                }
                             };
                             await ptyTerminalHost
                                             .StartListenTerminalOutputAsync
@@ -87,7 +87,7 @@ try
                                         !char.IsControl(c)
                                     )
                                 {
-                                    Console.WriteLine($"socket writing {c} ... @ {DateTime.Now}");
+                                    Console.WriteLine($"socket writing {c} @ {DateTime.Now}");
                                     networkStream.WriteByte((byte) '\b');
                                     networkStream.WriteByte(b);
                                 }
