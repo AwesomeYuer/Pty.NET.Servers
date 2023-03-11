@@ -1,5 +1,6 @@
 # Pty.NET.TcpListener.Linux.Server Create By AwesomeYuer@Microshaoft
 	Support only for Linux
+	It's only a too simple sample of using Pty.NET
 ## Usage
 
 ### Run Command Pty.NET.TcpListener.Linux.Server on WSL or Linux as below:
