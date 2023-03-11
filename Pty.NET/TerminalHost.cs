@@ -3,9 +3,9 @@
 namespace Pty.NET;
 
 public class PtyTerminalHost<TConection> 
-                            : //IDisposable where TConection : IDisposable
-                                IAsyncDisposable
-                                , IDisposable
+                                    :
+                                        IAsyncDisposable
+                                        , IDisposable
 {
     private const uint _ctrlCExitCode = 0xC000013A;
 
