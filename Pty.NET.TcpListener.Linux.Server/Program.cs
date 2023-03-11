@@ -24,7 +24,8 @@ var aa = new byte[]
 
 const uint CtrlCExitCode = 0xC000013A;
 
-int TestTimeoutMs = Debugger.IsAttached ? 300_0000 : 5_000;
+int TestTimeoutMs = 300_0000;
+        //Debugger.IsAttached ? 300_0000 : 5_000;
 
 CancellationToken TimeoutToken = new CancellationTokenSource(TestTimeoutMs).Token;
 

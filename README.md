@@ -1,3 +1,32 @@
+# Pty.NET.TcpListener.Linux.Server Create By AwesomeYuer@Microshaoft
+	Support only for Linux
+## Usage
+
+### Run Command Pty.NET.TcpListener.Linux.Server on WSL or Linux as below:
+```sh
+
+dotnet build
+
+dotnet test
+
+dotnet run -p Pty.NET.TcpListener.Linux.Server/Pty.NET.TcpListener.Linux.Server.csproj
+
+```
+
+### Run Command telent on Linux/Windows/MacOS as below:
+```sh
+
+telnet telnet 13000
+
+# and then input Linux command
+
+whoami
+
+pwd
+
+```
+
+
 # Pty.Net
 [![NuGet package](https://img.shields.io/nuget/v/Pty.Net.svg)](https://nuget.org/packages/Pty.Net)
 
