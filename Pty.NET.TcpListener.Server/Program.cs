@@ -52,15 +52,20 @@ try
                                                 (
                                                     async (sender, data) =>
                                                     {
-                                                        await sender.Conection.WriteAsync(data);
-                                                        return
-                                                            await Task.FromResult(true);
+                                                        await sender
+                                                                    .Conection
+                                                                    .WriteAsync
+                                                                            (data);
+                                                        return true;
                                                     }
                                                 );
 
                             var p = 0;
                             var bytes = new byte[64 * 1024];
-                            var timeoutToken = ptyTerminalHost.ListeningTerminalOutputCancellationTokenSource.Token;
+                            var timeoutToken =
+                                        ptyTerminalHost
+                                                    .ListeningTerminalOutputCancellationTokenSource
+                                                    .Token;
                             
                             while (1 == 1)
                             {
@@ -101,8 +106,21 @@ try
                                         //b == 0x28   // down
                                     )
                                 {
-                                    await ptyTerminalHost.Terminal!.WriterStream.WriteAsync(bytes, 0, p, timeoutToken);
-                                    await ptyTerminalHost.Terminal!.WriterStream.FlushAsync(timeoutToken);
+                                    await ptyTerminalHost
+                                                        .Terminal!
+                                                        .WriterStream
+                                                        .WriteAsync
+                                                                (
+                                                                    bytes
+                                                                    , 0
+                                                                    , p
+                                                                    , timeoutToken
+                                                                );
+                                    await ptyTerminalHost
+                                                        .Terminal!
+                                                        .WriterStream
+                                                        .FlushAsync
+                                                                (timeoutToken);
                                     p = 0;
                                 }
                             }
