@@ -5,7 +5,7 @@
 
 ## Usage:
 
-### Run `Pty.NET.TcpListener.Linux.Server` command on WSL or Linux as below:
+### Run `Pty.NET.TcpListener.Linux.Server` command on WSL or other Linux as below:
 ```sh
 
 dotnet build
