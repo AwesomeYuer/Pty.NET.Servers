@@ -139,18 +139,16 @@ try
     TcpListener tcpListener = null!;
     try
     {
-        // Set the TcpListener on port 13000.
         int port = 13000;
         IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
 
-        // TcpListener server = new TcpListener(port);
         tcpListener = new TcpListener(ipAddress, port);
 
         // Start listening for client requests.
         tcpListener.Start();
 
         // Buffer for reading data
-        byte[] bytes = new byte[256];
+        byte[] bytes = new byte[64 * 1024];
 
         // Enter the listening loop.
         while (true)
