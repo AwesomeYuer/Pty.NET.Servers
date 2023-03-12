@@ -1,7 +1,8 @@
 # Pty.NET.Servers
-- Create By AwesomeYuer
-- It's only a too simple sample for using Pty.NET
+- Simple `telnet` server
+- It's only a `too simple` for using `Pty.NET`
 - Support only for Linux
+- Create By `AwesomeYuer`
 
 ## Usage:
 
