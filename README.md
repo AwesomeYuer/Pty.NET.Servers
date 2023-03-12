@@ -1,20 +1,20 @@
 # Pty.NET.Servers
 - Simple `telnet` server
-- It's only a `too simple` for using `Pty.NET`
+- It's only a `too simple` sample for using `Pty.NET`
 - Support only for Linux
 - Create By `AwesomeYuer`
 
 ## Usage:
 
-### Run `Pty.NET.Servers` command on `WSL` or other `Linux` as below:
+### Run `Pty.NET.telnet.Server` command on `WSL` or other `Linux` as below:
 ```sh
 
 dotnet build
 
 dotnet test
 
-# run TcpListener Server
-dotnet run -p Pty.NET.TcpListener.Server/Pty.NET.TcpListener.Server.csproj
+# run the telnet Server
+dotnet run --project Pty.telnet.TcpListener.Server/Pty.telnet.TcpListener.Server.csproj
 
 ```
 
