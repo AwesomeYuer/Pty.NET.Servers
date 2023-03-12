@@ -22,32 +22,20 @@ public class PtyTerminalHost<TConection>
                                     :
                                     "sh";
 
-    public readonly CancellationTokenSource ListeningTerminalOutputCancellationTokenSource;
+    public readonly CancellationTokenSource ListeningOutputCancellationTokenSource;
 
     public IPtyConnection? Terminal { get; private set; }
 
-    private readonly TaskCompletionSource<uint> _processExitedTcs;
+    private readonly TaskCompletionSource<uint> _processExitedTaskCompletionSource;
 
-    private readonly TaskCompletionSource<object?> _firstOutput;
-
-    private readonly TaskCompletionSource<object?> _firstDataFound;
-
-    private string GetTerminalExitCode() =>
-                            (
-                                _processExitedTcs.Task.IsCompleted
-                                ?
-                                $". Terminal process has exited with exit code {_processExitedTcs.Task.GetAwaiter().GetResult()}."
-                                :
-                                string.Empty
-                            );
+    private readonly CancellationTokenSource _readingCancellationTokenSource;
 
     public PtyTerminalHost(TConection conection)
     {
         Conection = conection;
-        _processExitedTcs = new TaskCompletionSource<uint>();
-        ListeningTerminalOutputCancellationTokenSource = new CancellationTokenSource();
-        _firstOutput = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
-        _firstDataFound = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _processExitedTaskCompletionSource = new TaskCompletionSource<uint>();
+        ListeningOutputCancellationTokenSource = new CancellationTokenSource();
+        _readingCancellationTokenSource = new CancellationTokenSource(100);
     }
 
     public async Task StartListenTerminalOutputAsync
@@ -59,6 +47,7 @@ public class PtyTerminalHost<TConection>
                                     , Task<bool>
                                 >
                                     onCheckedTerminalOutputProcessFuncAsync
+                            , int bytesBufferLength = 8 * 1024
                         )
     {
         if (Terminal is null)
@@ -68,10 +57,9 @@ public class PtyTerminalHost<TConection>
                                     .SpawnAsync
                                             (
                                                 Options!
-                                                , ListeningTerminalOutputCancellationTokenSource
-                                                                                                .Token
+                                                , ListeningOutputCancellationTokenSource.Token
                                             );
-            Terminal.ProcessExited += (sender, e) => _processExitedTcs.TrySetResult((uint)Terminal.ExitCode);
+            Terminal.ProcessExited += (sender, e) => _processExitedTaskCompletionSource.TrySetResult((uint) Terminal.ExitCode);
         }
         string output = string.Empty;
         var checkTerminalOutputAsync =
@@ -80,66 +68,124 @@ public class PtyTerminalHost<TConection>
                         (
                             async () =>
                             {
-                                var bytes = new byte[64 * 1024];
-                                var runningCancellationToken = ListeningTerminalOutputCancellationTokenSource.Token;
+                                var bytes = new byte[bytesBufferLength];
+                                var listeningOutputCancellationToken =
+                                            ListeningOutputCancellationTokenSource.Token;
                                 while
                                     (
-                                        !runningCancellationToken.IsCancellationRequested
+                                        !listeningOutputCancellationToken
+                                                        .IsCancellationRequested
                                         &&
-                                        !_processExitedTcs.Task.IsCompleted
+                                        !_processExitedTaskCompletionSource
+                                                        .Task
+                                                        .IsCompleted
                                     )
                                 {
-                                    int r =
-                                            await Terminal
-                                                        .ReaderStream
-                                                        .ReadAsync
-                                                                (
-                                                                    bytes
-                                                                    , 0
-                                                                    , bytes.Length
-                                                                    , runningCancellationToken
-                                                                );
-
-                                    ArraySegment<byte> buffer = new ArraySegment<byte>(bytes, 0, r);
-
-                                    if (Conection != null)
+                                    int r = 0;
+                                    do
                                     {
-                                        _ = await onCheckedTerminalOutputProcessFuncAsync
-                                                        (
-                                                            this
-                                                            , buffer
-                                                        );
+                                        try
+                                        {
+                                            r = await Terminal
+                                                            .ReaderStream
+                                                            .ReadAsync
+                                                                    (
+                                                                        bytes
+                                                                        , 0
+                                                                        , bytes.Length
+                                                                        , _readingCancellationTokenSource.Token
+                                                                    );
+                                        }
+                                        catch (IOException ioException)
+                                        {
+                                            Console.WriteLine($"Reading Caught {nameof(IOException)}:\r\n{ioException}");
+                                            _readingCancellationTokenSource.Cancel();
+                                            _isCanceledReading = true;
+                                        }
+                                        if 
+                                            (
+                                                _isCanceledReading
+                                                &&
+                                                _readingCancellationTokenSource
+                                                                    .IsCancellationRequested
+                                            )
+                                        {
+                                            break;
+                                        }
+                                        var reseted = false;
+                                        while (!(reseted = _readingCancellationTokenSource.TryReset()));
                                     }
-                                    _firstOutput.TrySetResult(null);
+                                    while (r <= 0);
+
+                                    if (r > 0)
+                                    {
+                                        ArraySegment<byte> buffer = new ArraySegment<byte>(bytes, 0, r);
+
+                                        if (Conection != null)
+                                        {
+                                            _ = await onCheckedTerminalOutputProcessFuncAsync
+                                                            (
+                                                                this
+                                                                , buffer
+                                                            );
+                                        }
+                                    }
+
+                                    if (_isCanceledReading)
+                                    {
+                                        break;
+                                    }
+
                                 }
-                                _firstOutput.TrySetCanceled();
-                                _firstDataFound.TrySetCanceled();
+                                
                                 return false;
                             }
                         );
-        try
-        {
-            await _firstOutput.Task;
-        }
-        catch (OperationCanceledException exception)
-        {
-            throw
-                new InvalidOperationException
-                            (
-                                $"Could not get any output from terminal {GetTerminalExitCode()}"
-                                , exception
-                            );
-        };
     }
 
     public async Task<bool> ExitAsync()
     {
-        ListeningTerminalOutputCancellationTokenSource.Cancel();
-        var timeoutToken = ListeningTerminalOutputCancellationTokenSource.Token;
-        using (timeoutToken.Register(() => _processExitedTcs.TrySetCanceled(timeoutToken)))
+        bool r;
+        while
+            (
+                !(r = await ExitOnceAsync())
+            );
+        return r;
+    
+    }
+
+    private bool _isCanceledReading;
+
+    private bool _isExited;
+    public async Task<bool> ExitOnceAsync()
+    {
+        if (_isExited)
         {
-            uint exitCode = await _processExitedTcs.Task;
             return
+                _isExited;
+        }
+
+        var r = false;
+
+        _readingCancellationTokenSource.Cancel();
+        _isCanceledReading = true;
+
+        var timeoutToken = ListeningOutputCancellationTokenSource.Token;
+        using
+            (
+                timeoutToken
+                            .Register
+                                    (
+                                        () =>
+                                        {
+                                            _processExitedTaskCompletionSource.TrySetCanceled(timeoutToken);
+                                        }
+                                    )
+            )
+        {
+            Terminal!.Dispose();
+            uint exitCode = await _processExitedTaskCompletionSource.Task;
+            r =
                 (
                     exitCode == _ctrlCExitCode   // WinPty terminal exit code.
                     ||
@@ -148,17 +194,20 @@ public class PtyTerminalHost<TConection>
                     exitCode == 0               // pty exit code on *nix.
                 );
         }
-    }
-
-    public void Dispose()
-    {
-        ExitAsync().Wait();
-        Terminal!.Dispose();
+        _isExited = r;
+        Terminal!.WaitForExit(1000 * 10);
+        return r;
     }
 
     public ValueTask DisposeAsync()
     {
         Dispose();
         return default;
+    }
+
+    public void Dispose()
+    {
+        _ = !ExitAsync().Result;
+        Terminal!.Dispose();
     }
 }

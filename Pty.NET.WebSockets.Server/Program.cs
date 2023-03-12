@@ -86,7 +86,7 @@ app.Use(async (context, next) =>
                                                             , WebSocketMessageType.Binary
                                                             , false
                                                             , sender
-                                                                    .ListeningTerminalOutputCancellationTokenSource
+                                                                    .ListeningOutputCancellationTokenSource
                                                                     .Token
                                                         );
                                         return
@@ -96,14 +96,14 @@ app.Use(async (context, next) =>
 
             var p = 0;
             var bytes = new byte[64 * 1024];
-            var timeoutToken = ptyTerminalHost.ListeningTerminalOutputCancellationTokenSource.Token;
+            var timeoutToken = ptyTerminalHost.ListeningOutputCancellationTokenSource.Token;
 
             while (1 == 1)
             {
                 Console.WriteLine($"socket reading ... @ {DateTime.Now}");
                 ArraySegment<byte> arraySegment = new ArraySegment<byte>(new byte[0]);
 
-                var rr = await webSocket.ReceiveAsync(arraySegment, ptyTerminalHost.ListeningTerminalOutputCancellationTokenSource.Token);
+                var rr = await webSocket.ReceiveAsync(arraySegment, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
                 
                 if (rr.Count < 0)
                 {
@@ -122,9 +122,9 @@ app.Use(async (context, next) =>
                     )
                 {
                     Console.WriteLine($"socket writing {(char) r} ... @ {DateTime.Now}");
-                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningTerminalOutputCancellationTokenSource.Token);
-                    await webSocket.SendAsync(backSpace, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningTerminalOutputCancellationTokenSource.Token);
-                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningTerminalOutputCancellationTokenSource.Token);
+                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
+                    await webSocket.SendAsync(backSpace, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
+                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
                 }
 
                 var buffer = arraySegment.Array!;
