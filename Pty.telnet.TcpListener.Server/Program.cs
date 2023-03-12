@@ -21,9 +21,9 @@ try
 
     while (true)
     {
-        Console.WriteLine("Waiting for a connection... ");
+        Console.WriteLine($"Connected: [{i}], Waiting for more connections ... @ {DateTime.Now}");
         TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
-        Console.WriteLine($"Connected! [{++i}] @ {DateTime.Now}");
+        Console.WriteLine($"new Connect: [{++i}] @ {DateTime.Now}");
 
         try
         {
