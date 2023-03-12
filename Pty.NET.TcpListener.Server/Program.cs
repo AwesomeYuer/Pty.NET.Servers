@@ -1,5 +1,4 @@
 ﻿// See https://aka.ms/new-console-template for more information
-using AutoIt.Common;
 using Pty.NET;
 using System.Net;
 using System.Net.Sockets;
@@ -9,7 +8,6 @@ const string Data = "abc✓ЖЖЖ①Ⅻㄨㄩ 啊阿鼾齄丂丄狚狛狜狝﨨�
 const int bytesBufferLength = 8 * 1024;
 const string customExitCommandLine = "886";
 
-EncodingDetector encodingDetector = new EncodingDetector();
 TcpListener tcpListener = null!;
 try
 {
