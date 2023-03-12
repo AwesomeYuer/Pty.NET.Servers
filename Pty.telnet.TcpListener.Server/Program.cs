@@ -17,138 +17,125 @@ try
     // Start listening for client requests.
     tcpListener.Start();
 
-    // Enter the listening loop.
+    int i = 0;
+
     while (true)
     {
-        Console.Write("Waiting for a connection... ");
-        TcpClient tcpClient = tcpListener.AcceptTcpClient();
-        Console.WriteLine("Connected!");
+        Console.WriteLine("Waiting for a connection... ");
+        TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
+        Console.WriteLine($"Connected! [{++i}] @ {DateTime.Now}");
 
-        new Thread
-                (
-                    async () =>
-                    {
-                        try
-                        {
-                            await threadProcessAsync(tcpClient);
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"Caught Exception:\r\n{e}");
-                        }
-                        finally
-                        {
-                            tcpClient.Close();
-                            tcpClient = null!;
-                        }
-                    }
-                )
-                .Start();
-    }
-}
-finally
-{
-    tcpListener.Stop();
-}
-
-async Task threadProcessAsync(TcpClient tcpClient)
-{
-    var networkStream = tcpClient.GetStream();
-
-    await using var ptyTerminalHost = new PtyTerminalHost<NetworkStream>(networkStream)
-    {
-        Options = new PtyOptions
+        try
         {
-            Name = "Custom Terminal"
-            , Cols = Data.Length + Environment.CurrentDirectory.Length + 50
-            , Rows = 25
-            , Cwd = Environment.CurrentDirectory
-            , Environment = new Dictionary<string, string>()
+            _ = ProcessAsync();
+
+            #region Local Func ProcessAsync
+            async Task ProcessAsync()
+            {
+                try
+                {
+                    using var networkStream = tcpClient.GetStream();
+                    await using var ptyTerminalHost = new PtyTerminalHost<NetworkStream>(networkStream)
+                    {
+                        Options = new PtyOptions
+                        {
+                            Name = "Custom Terminal"
+                            , Cols = Data.Length + Environment.CurrentDirectory.Length + 50
+                            , Rows = 25
+                            , Cwd = Environment.CurrentDirectory
+                            , Environment = new Dictionary<string, string>()
                                             {
                                                   { "FOO", "bar" }
                                                 , { "Bazz", string.Empty }
                                                 ,
                                             },
-        }
-    };
-    await ptyTerminalHost
-                    .StartListenOutputAsync
-                        (
-                            async (sender, data) =>
+                        }
+                    };
+                    await ptyTerminalHost
+                                    .StartListenOutputAsync
+                                        (
+                                            async (sender, data) =>
+                                            {
+                                                await sender
+                                                            .Conection
+                                                            .WriteAsync
+                                                                    (data);
+                                            }
+                                        );
+
+                    var p = 0;
+                    var bytes = new byte[bytesBufferLength];
+                    var timeoutToken = new CancellationTokenSource().Token;
+
+                    while (1 == 1)
+                    {
+                        //Console.WriteLine($"socket reading ... @ {DateTime.Now}");
+                        int r = networkStream.ReadByte();
+                        if (r < 0)
+                        {
+                            Thread.Sleep(100);
+                            continue;
+                        }
+                        byte b = (byte) r;
+                        char c = (char) r;
+                        if
+                            (
+                                b != 0x0D
+                                //&&
+                                //b != 0x27
+                                &&
+                                !char.IsControl(c)
+                            )
+                        {
+                            // Console.WriteLine($"socket writing {c} @ {DateTime.Now}");
+                            networkStream.WriteByte((byte) '\b');
+                            networkStream.WriteByte(b);
+                        }
+                        var buffer = new byte[] { b };
+                        var l = buffer.Length;
+                        Buffer.BlockCopy(buffer, 0, bytes, p, l);
+                        p += l;
+
+                        if
+                            (
+                                b == 0x0D   // enter
+                                            //||
+                                            //b == 0x26   // up
+                                            //||
+                                            //b == 0x28   // down
+                            )
+                        {
+                            ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, p);
+                            var commandLine = Encoding.UTF8.GetString(arraySegment).Trim();
+                            Console.WriteLine($"Connection [{i}] Receive Command Line:\r\n{commandLine}\r\n@ {DateTime.Now}");
+                            if (commandLine == customExitCommandLine)
                             {
-                                await sender
-                                            .Conection
-                                            .WriteAsync
-                                                    (data);
+                                await ptyTerminalHost.ExitOnceAsync();
+                                break;
                             }
-                        );
-
-    var p = 0;
-    var bytes = new byte[bytesBufferLength];
-    var timeoutToken = new CancellationTokenSource().Token;
-                
-
-    while (1 == 1)
-    {
-        Console.WriteLine($"socket reading ... @ {DateTime.Now}");
-        int r = networkStream.ReadByte();
-        if (r < 0)
-        {
-            Thread.Sleep(100);
-            continue;
+                            await ptyTerminalHost.InputAsync(arraySegment);
+                            p = 0;
+                        }
+                    };
+                    networkStream.Close();
+                }
+                finally
+                {
+                    tcpClient.Close();
+                    tcpClient = null!;
+                }
+            } 
+            #endregion
         }
-        byte b = (byte) r;
-        char c = (char) r;
-        if
-            (
-                b != 0x0D
-                //&&
-                //b != 0x27
-                &&
-                !char.IsControl(c)
-            )
+        catch (Exception e)
         {
-            Console.WriteLine($"socket writing {c} @ {DateTime.Now}");
-            networkStream.WriteByte((byte)'\b');
-            networkStream.WriteByte(b);
+            Console.WriteLine($"Caught Exception:\r\n{e}");
         }
-
-        var buffer = new byte[] { b };
-        var l = buffer.Length;
-        Buffer.BlockCopy(buffer, 0, bytes, p, l);
-        p += l;
-
-        if
-            (
-                b == 0x0D   // enter
-                //||
-                //b == 0x26   // up
-                //||
-                //b == 0x28   // down
-            )
-        {
-
-            ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, p);
-
-            var commandLine = Encoding.UTF8.GetString(arraySegment).Trim();
-
-            Console.WriteLine($"Receive Command Line:\r\n{commandLine}");
-
-            if (commandLine == customExitCommandLine)
-            {
-                await ptyTerminalHost.ExitOnceAsync();
-                break;
-            }
-
-            await ptyTerminalHost.InputAsync(arraySegment);
-                                
-            p = 0;
-        }
-        
-    };
-
-    networkStream.Close();
-    networkStream = null;
-
-
+    }
 }
+finally
+{
+    tcpListener.Stop();
+    tcpListener = null!;
+}
+
