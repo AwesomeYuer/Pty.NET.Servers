@@ -73,7 +73,7 @@ app.Use(async (context, next) =>
                 }
             };
             await ptyTerminalHost
-                            .StartListenTerminalOutputAsync
+                            .StartListenOutputAsync
                                 (
                                     async (sender, data) =>
                                     {
@@ -85,25 +85,21 @@ app.Use(async (context, next) =>
                                                             data
                                                             , WebSocketMessageType.Binary
                                                             , false
-                                                            , sender
-                                                                    .ListeningOutputCancellationTokenSource
-                                                                    .Token
+                                                            , new CancellationToken()
                                                         );
-                                        return
-                                            await Task.FromResult(true);
                                     }
                                 );
 
             var p = 0;
             var bytes = new byte[64 * 1024];
-            var timeoutToken = ptyTerminalHost.ListeningOutputCancellationTokenSource.Token;
+            
 
             while (1 == 1)
             {
                 Console.WriteLine($"socket reading ... @ {DateTime.Now}");
                 ArraySegment<byte> arraySegment = new ArraySegment<byte>(new byte[0]);
 
-                var rr = await webSocket.ReceiveAsync(arraySegment, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
+                var rr = await webSocket.ReceiveAsync(arraySegment, new CancellationToken());
                 
                 if (rr.Count < 0)
                 {
@@ -122,9 +118,9 @@ app.Use(async (context, next) =>
                     )
                 {
                     Console.WriteLine($"socket writing {(char) r} ... @ {DateTime.Now}");
-                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
-                    await webSocket.SendAsync(backSpace, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
-                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, ptyTerminalHost.ListeningOutputCancellationTokenSource.Token);
+                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, new CancellationToken());
+                    await webSocket.SendAsync(backSpace, WebSocketMessageType.Binary, false, new CancellationToken());
+                    await webSocket.SendAsync(arraySegment.Array!, WebSocketMessageType.Binary, false, new CancellationToken());
                 }
 
                 var buffer = arraySegment.Array!;
@@ -141,8 +137,8 @@ app.Use(async (context, next) =>
                         r == 0x28   // down
                     )
                 {
-                    await ptyTerminalHost.Terminal!.WriterStream.WriteAsync(bytes, 0, p, timeoutToken);
-                    await ptyTerminalHost.Terminal!.WriterStream.FlushAsync(timeoutToken);
+                    arraySegment = new ArraySegment<byte>(bytes, 0, p);
+                    await ptyTerminalHost.InputAsync(arraySegment, new CancellationToken());
                     p = 0;
                 }
             }

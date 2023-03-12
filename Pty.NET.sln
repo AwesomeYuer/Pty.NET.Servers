@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.TcpListener.Server", "Pty.NET.TcpListener.Server\Pty.NET.TcpListener.Server.csproj", "{3C5E86FE-71EB-409A-8FA2-962AF74E80D3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pty.NET.WebSockets.Server", "Pty.NET.WebSockets.Server\Pty.NET.WebSockets.Server.csproj", "{D2324386-E795-41BA-A47A-A260DC054C15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TODO-Pty.NET.WebSockets.Server", "Pty.NET.WebSockets.Server\TODO-Pty.NET.WebSockets.Server.csproj", "{D2324386-E795-41BA-A47A-A260DC054C15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

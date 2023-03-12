@@ -22,9 +22,9 @@ public class PtyTerminalHost<TConection>
                                     :
                                     "sh";
 
-    public readonly CancellationTokenSource ListeningOutputCancellationTokenSource;
+    private readonly CancellationTokenSource OnOutputCancellationTokenSource;
 
-    public IPtyConnection? Terminal { get; private set; }
+    private IPtyConnection? Terminal { get; set; }
 
     private readonly TaskCompletionSource<uint> _processExitedTaskCompletionSource;
 
@@ -34,19 +34,43 @@ public class PtyTerminalHost<TConection>
     {
         Conection = conection;
         _processExitedTaskCompletionSource = new TaskCompletionSource<uint>();
-        ListeningOutputCancellationTokenSource = new CancellationTokenSource();
+        OnOutputCancellationTokenSource = new CancellationTokenSource();
         _readingCancellationTokenSource = new CancellationTokenSource(100);
     }
 
-    public async Task StartListenTerminalOutputAsync
+    public async Task InputAsync(ArraySegment<byte> bytes, CancellationToken cancellationToken = default)
+    {
+        var buffer = bytes.ToArray()!;
+
+        // skip start '/r', reserve end '/n'
+        buffer = buffer.Skip(1).ToArray();
+
+        await Terminal!
+                    .WriterStream
+                    .WriteAsync
+                            (
+                                buffer
+                                , 0
+                                , buffer.Length
+                                , cancellationToken
+                            );
+        await Terminal!
+                    .WriterStream
+                    .FlushAsync
+                            (cancellationToken);
+
+    }
+
+
+    public async Task StartListenOutputAsync
                         (
                             Func
                                 <
                                     PtyTerminalHost<TConection>
                                     , ArraySegment<byte>
-                                    , Task<bool>
+                                    , Task
                                 >
-                                    onCheckedTerminalOutputProcessFuncAsync
+                                    onOutputProcessAsync
                             , int bytesBufferLength = 8 * 1024
                         )
     {
@@ -57,7 +81,7 @@ public class PtyTerminalHost<TConection>
                                     .SpawnAsync
                                             (
                                                 Options!
-                                                , ListeningOutputCancellationTokenSource.Token
+                                                , OnOutputCancellationTokenSource.Token
                                             );
             Terminal.ProcessExited += (sender, e) => _processExitedTaskCompletionSource.TrySetResult((uint) Terminal.ExitCode);
         }
@@ -70,7 +94,7 @@ public class PtyTerminalHost<TConection>
                             {
                                 var bytes = new byte[bytesBufferLength];
                                 var listeningOutputCancellationToken =
-                                            ListeningOutputCancellationTokenSource.Token;
+                                            OnOutputCancellationTokenSource.Token;
                                 while
                                     (
                                         !listeningOutputCancellationToken
@@ -123,21 +147,19 @@ public class PtyTerminalHost<TConection>
 
                                         if (Conection != null)
                                         {
-                                            _ = await onCheckedTerminalOutputProcessFuncAsync
-                                                            (
-                                                                this
-                                                                , buffer
-                                                            );
+                                            await
+                                                onOutputProcessAsync
+                                                                    (
+                                                                        this
+                                                                        , buffer
+                                                                    );
                                         }
                                     }
-
                                     if (_isCanceledReading)
                                     {
                                         break;
                                     }
-
                                 }
-                                
                                 return false;
                             }
                         );
@@ -170,7 +192,7 @@ public class PtyTerminalHost<TConection>
         _readingCancellationTokenSource.Cancel();
         _isCanceledReading = true;
 
-        var timeoutToken = ListeningOutputCancellationTokenSource.Token;
+        var timeoutToken = OnOutputCancellationTokenSource.Token;
         using
             (
                 timeoutToken

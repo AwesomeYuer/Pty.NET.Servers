@@ -59,7 +59,7 @@ async Task threadProcessAsync(TcpClient tcpClient)
     {
         Options = new PtyOptions
         {
-            Name = "Custom terminal"
+            Name = "Custom Terminal"
             , Cols = Data.Length + Environment.CurrentDirectory.Length + 50
             , Rows = 25
             , Cwd = Environment.CurrentDirectory
@@ -72,7 +72,7 @@ async Task threadProcessAsync(TcpClient tcpClient)
         }
     };
     await ptyTerminalHost
-                    .StartListenTerminalOutputAsync
+                    .StartListenOutputAsync
                         (
                             async (sender, data) =>
                             {
@@ -80,16 +80,13 @@ async Task threadProcessAsync(TcpClient tcpClient)
                                             .Conection
                                             .WriteAsync
                                                     (data);
-                                return true;
                             }
                         );
 
     var p = 0;
     var bytes = new byte[bytesBufferLength];
-    var timeoutToken =
-                ptyTerminalHost
-                            .ListeningOutputCancellationTokenSource
-                            .Token;
+    var timeoutToken = new CancellationTokenSource().Token;
+                
 
     while (1 == 1)
     {
@@ -100,8 +97,8 @@ async Task threadProcessAsync(TcpClient tcpClient)
             Thread.Sleep(100);
             continue;
         }
-        byte b = (byte)r;
-        char c = (char)r;
+        byte b = (byte) r;
+        char c = (char) r;
         if
             (
                 b != 0x0D
@@ -143,21 +140,8 @@ async Task threadProcessAsync(TcpClient tcpClient)
                 break;
             }
 
-            await ptyTerminalHost
-                                .Terminal!
-                                .WriterStream
-                                .WriteAsync
-                                        (
-                                            bytes
-                                            , 0
-                                            , p
-                                            , timeoutToken
-                                        );
-            await ptyTerminalHost
-                                .Terminal!
-                                .WriterStream
-                                .FlushAsync
-                                        (timeoutToken);
+            await ptyTerminalHost.InputAsync(arraySegment);
+                                
             p = 0;
         }
         
