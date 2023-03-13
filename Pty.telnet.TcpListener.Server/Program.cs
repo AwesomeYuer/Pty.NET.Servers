@@ -107,7 +107,7 @@ static async Task ProcessAsync(TcpClient tcpClient, int connectionId)
             char c = (char) r;
             if
                 (
-                    b != 0x0D
+                    c != '\n'    // enter
                     //&&
                     //b != 0x27
                     &&
@@ -125,11 +125,11 @@ static async Task ProcessAsync(TcpClient tcpClient, int connectionId)
 
             if
                 (
-                    b == 0x0D   // enter
+                    c == (byte) '\n'    // enter
                     //||
-                    //b == 0x26   // up
+                    //b == 0x26         // up
                     //||
-                    //b == 0x28   // down
+                    //b == 0x28         // down
                 )
             {
                 ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, p);

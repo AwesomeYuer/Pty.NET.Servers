@@ -66,24 +66,34 @@ public class PtyTerminalHost<TConection>
     public async Task InputAsync(ArraySegment<byte> bytes, CancellationToken cancellationToken = default)
     {
         var buffer = bytes.ToArray()!;
+        if (buffer is not null)
+        {
+            if (buffer.Length > 0)
+            {
+                if (buffer[0] == '\r')
+                {
+                    // skip starts '/r', reserve ends '/n'
+                    buffer = buffer.Skip(1).ToArray();
+                }
+            }
 
-        // skip start '/r', reserve end '/n'
-        buffer = buffer.Skip(1).ToArray();
-
-        await _terminal!
-                    .WriterStream
-                    .WriteAsync
-                            (
-                                buffer
-                                , 0
-                                , buffer.Length
-                                , cancellationToken
-                            );
-        await _terminal!
-                    .WriterStream
-                    .FlushAsync
-                            (cancellationToken);
-
+            if (buffer.Length > 0)
+            {
+                await _terminal!
+                            .WriterStream
+                            .WriteAsync
+                                    (
+                                        buffer
+                                        , 0
+                                        , buffer.Length
+                                        , cancellationToken
+                                    );
+                await _terminal!
+                            .WriterStream
+                            .FlushAsync
+                                    (cancellationToken);
+            }
+        }
     }
 
     public void Resize(int columns, int rows)
