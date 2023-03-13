@@ -1,5 +1,5 @@
 # Pty.NET telnet Server
-- Simple `telnet` server, it's an incomplete implementation
+- Simple `telnet` server, it's NOT an complete implementation
 - It's only a `too simple` sample for using `Pty.NET`
 - Support only for `Linux`
 - Create By `AwesomeYuer`
