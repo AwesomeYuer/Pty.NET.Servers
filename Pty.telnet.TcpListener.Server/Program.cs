@@ -58,7 +58,7 @@ static async Task ProcessAsync(TcpClient tcpClient, int connectionId)
                 , Cwd = Environment.CurrentDirectory
                 , Environment = new Dictionary<string, string>()
                                 {
-                                        { "FOO", "bar" }
+                                      { "FOO", "bar" }
                                     , { "Bazz", string.Empty }
                                     ,
                                 },
