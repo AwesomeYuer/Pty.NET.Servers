@@ -73,7 +73,7 @@ app.Use(async (context, next) =>
                 }
             };
             await ptyTerminalHost
-                            .StartListenOutputAsync
+                            .StartRunAsync
                                 (
                                     async (sender, data) =>
                                     {

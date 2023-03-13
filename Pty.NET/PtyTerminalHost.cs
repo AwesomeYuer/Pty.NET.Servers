@@ -24,11 +24,14 @@ public class PtyTerminalHost<TConection>
 
     private readonly CancellationTokenSource OnOutputCancellationTokenSource;
 
-    private IPtyConnection? Terminal { get; set; }
+    private IPtyConnection? _terminal;
 
     private readonly TaskCompletionSource<uint> _processExitedTaskCompletionSource;
 
     private readonly CancellationTokenSource _readingCancellationTokenSource;
+
+
+    public EventHandler<PtyExitedEventArgs>? OnProcessExited { get; set; }
 
     public PtyTerminalHost(TConection conection)
     {
@@ -45,7 +48,7 @@ public class PtyTerminalHost<TConection>
         // skip start '/r', reserve end '/n'
         buffer = buffer.Skip(1).ToArray();
 
-        await Terminal!
+        await _terminal!
                     .WriterStream
                     .WriteAsync
                             (
@@ -54,7 +57,7 @@ public class PtyTerminalHost<TConection>
                                 , buffer.Length
                                 , cancellationToken
                             );
-        await Terminal!
+        await _terminal!
                     .WriterStream
                     .FlushAsync
                             (cancellationToken);
@@ -62,7 +65,7 @@ public class PtyTerminalHost<TConection>
     }
 
 
-    public async Task StartListenOutputAsync
+    public async Task StartRunAsync
                         (
                             Func
                                 <
@@ -74,16 +77,20 @@ public class PtyTerminalHost<TConection>
                             , int bufferBytesLength = 8 * 1024
                         )
     {
-        if (Terminal is null)
+        if (_terminal is null)
         {
             Options!.App = _consoleHost;
-            Terminal = await PtyProvider
+            _terminal = await PtyProvider
                                     .SpawnAsync
                                             (
                                                 Options!
                                                 , OnOutputCancellationTokenSource.Token
                                             );
-            Terminal.ProcessExited += (sender, e) => _processExitedTaskCompletionSource.TrySetResult((uint) Terminal.ExitCode);
+            _terminal.ProcessExited += (sender, e) =>
+            {
+                _processExitedTaskCompletionSource.TrySetResult((uint) _terminal.ExitCode);
+                OnProcessExited?.Invoke(this, e);
+            };
         }
         string output = string.Empty;
         var checkTerminalOutputAsync =
@@ -110,7 +117,7 @@ public class PtyTerminalHost<TConection>
                                     {
                                         try
                                         {
-                                            r = await Terminal
+                                            r = await _terminal
                                                             .ReaderStream
                                                             .ReadAsync
                                                                     (
@@ -205,7 +212,7 @@ public class PtyTerminalHost<TConection>
                                     )
             )
         {
-            Terminal!.Dispose();
+            _terminal!.Dispose();
             uint exitCode = await _processExitedTaskCompletionSource.Task;
             r =
                 (
@@ -217,7 +224,7 @@ public class PtyTerminalHost<TConection>
                 );
         }
         _isExited = r;
-        Terminal!.WaitForExit(1000 * 10);
+        _terminal!.WaitForExit(1000 * 10);
         return r;
     }
 
@@ -230,6 +237,6 @@ public class PtyTerminalHost<TConection>
     public void Dispose()
     {
         _ = !ExitAsync().Result;
-        Terminal!.Dispose();
+        _terminal!.Dispose();
     }
 }

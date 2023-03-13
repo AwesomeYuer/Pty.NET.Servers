@@ -23,7 +23,7 @@ try
     {
         Console.WriteLine($"Connected: [{i}], Waiting for more connections ... @ {DateTime.Now}");
         TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
-        Console.WriteLine($"new Connect: [{++i}] @ {DateTime.Now}");
+        Console.WriteLine($"new Connect: [{++ i}] @ {DateTime.Now}");
 
         try
         {
@@ -51,8 +51,14 @@ try
                                             },
                         }
                     };
+
+                    ptyTerminalHost.OnProcessExited += (sender, e) =>
+                    {
+                        Console.WriteLine($"{nameof(ptyTerminalHost.OnProcessExited)}: {sender!.GetType().Name} , {e.ExitCode}");
+                    };
+
                     await ptyTerminalHost
-                                    .StartListenOutputAsync
+                                    .StartRunAsync
                                         (
                                             async (sender, data) =>
                                             {
