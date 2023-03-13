@@ -54,10 +54,11 @@ try
 
                     ptyTerminalHost.OnProcessExited += (sender, e) =>
                     {
-                        Console.WriteLine($"{nameof(ptyTerminalHost.OnProcessExited)}: {sender!.GetType().Name} , {e.ExitCode}");
+                        Console.WriteLine($"{nameof(ptyTerminalHost.OnProcessExited)}: {sender!.GetType().Name} , {e.ExitCode} @ {DateTime.Now}");
                     };
 
-                    await ptyTerminalHost
+                    // run async
+                    _ = ptyTerminalHost
                                     .StartRunAsync
                                         (
                                             async (sender, data) =>

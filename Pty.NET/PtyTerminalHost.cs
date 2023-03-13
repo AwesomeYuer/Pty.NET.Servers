@@ -11,6 +11,21 @@ public class PtyTerminalHost<TConection>
 
     public PtyOptions? Options { get; init; }
 
+    public int ProcessId
+    {
+        get
+        {
+            return
+                _terminal is not null
+                ?
+                _terminal.Pid
+                :
+                -1
+                ;
+        }
+    }
+
+
     public readonly TConection Conection;
 
     private readonly string _consoleHost =
@@ -30,8 +45,11 @@ public class PtyTerminalHost<TConection>
 
     private readonly CancellationTokenSource _readingCancellationTokenSource;
 
-
     public EventHandler<PtyExitedEventArgs>? OnProcessExited { get; set; }
+
+    private bool _isCanceledReading;
+
+    private bool _isExited;
 
     public PtyTerminalHost(TConection conection)
     {
@@ -64,18 +82,32 @@ public class PtyTerminalHost<TConection>
 
     }
 
+    public void Resize(int columns, int rows)
+    {
+        _terminal!.Resize(columns, rows);
+    }
 
-    public async Task StartRunAsync
-                        (
-                            Func
-                                <
-                                    PtyTerminalHost<TConection>
-                                    , ArraySegment<byte>
-                                    , Task
-                                >
-                                    onOutputProcessAsync
-                            , int bufferBytesLength = 8 * 1024
-                        )
+    public void Kill()
+    {
+        _terminal!.Kill();
+    }
+
+    public void Kill(int milliseconds)
+    {
+        _terminal!.WaitForExit(milliseconds);
+    }
+
+    public async Task<bool> StartRunAsync
+                                (
+                                    Func
+                                        <
+                                            PtyTerminalHost<TConection>
+                                            , ArraySegment<byte>
+                                            , Task
+                                        >
+                                            onOutputProcessAsync
+                                    , int bufferBytesLength = 8 * 1024
+                                )
     {
         if (_terminal is null)
         {
@@ -93,83 +125,76 @@ public class PtyTerminalHost<TConection>
             };
         }
         string output = string.Empty;
-        var checkTerminalOutputAsync =
-                Task
-                    .Run
-                        (
-                            async () =>
-                            {
-                                var bytes = new byte[bufferBytesLength];
-                                var listeningOutputCancellationToken =
-                                            OnOutputCancellationTokenSource.Token;
-                                while
-                                    (
-                                        !listeningOutputCancellationToken
-                                                        .IsCancellationRequested
-                                        &&
-                                        !_processExitedTaskCompletionSource
-                                                        .Task
-                                                        .IsCompleted
-                                    )
-                                {
-                                    int r = 0;
-                                    do
-                                    {
-                                        try
-                                        {
-                                            r = await _terminal
-                                                            .ReaderStream
-                                                            .ReadAsync
-                                                                    (
-                                                                        bytes
-                                                                        , 0
-                                                                        , bytes.Length
-                                                                        , _readingCancellationTokenSource.Token
-                                                                    );
-                                        }
-                                        catch (IOException ioException)
-                                        {
-                                            Console.WriteLine($"Reading Caught {nameof(IOException)}:\r\n{ioException}");
-                                            _readingCancellationTokenSource.Cancel();
-                                            _isCanceledReading = true;
-                                        }
-                                        if 
+ 
+        var bytes = new byte[bufferBytesLength];
+        var listeningOutputCancellationToken =
+                    OnOutputCancellationTokenSource.Token;
+        while
+            (
+                !listeningOutputCancellationToken
+                                .IsCancellationRequested
+                &&
+                !_processExitedTaskCompletionSource
+                                .Task
+                                .IsCompleted
+            )
+        {
+            int r = 0;
+            do
+            {
+                try
+                {
+                    r = await _terminal
+                                    .ReaderStream
+                                    .ReadAsync
                                             (
-                                                _isCanceledReading
-                                                &&
-                                                _readingCancellationTokenSource
-                                                                    .IsCancellationRequested
-                                            )
-                                        {
-                                            break;
-                                        }
-                                        var reseted = false;
-                                        while (!(reseted = _readingCancellationTokenSource.TryReset()));
-                                    }
-                                    while (r <= 0);
+                                                bytes
+                                                , 0
+                                                , bytes.Length
+                                                , _readingCancellationTokenSource.Token
+                                            );
+                }
+                catch (IOException ioException)
+                {
+                    Console.WriteLine($"Reading Caught {nameof(IOException)}:\r\n{ioException}");
+                    _readingCancellationTokenSource.Cancel();
+                    _isCanceledReading = true;
+                }
+                if 
+                    (
+                        _isCanceledReading
+                        &&
+                        _readingCancellationTokenSource
+                                            .IsCancellationRequested
+                    )
+                {
+                    break;
+                }
+                var reseted = false;
+                while (!(reseted = _readingCancellationTokenSource.TryReset()));
+            }
+            while (r <= 0);
 
-                                    if (r > 0)
-                                    {
-                                        ArraySegment<byte> buffer = new ArraySegment<byte>(bytes, 0, r);
+            if (r > 0)
+            {
+                ArraySegment<byte> buffer = new ArraySegment<byte>(bytes, 0, r);
 
-                                        if (Conection != null)
-                                        {
-                                            await
-                                                onOutputProcessAsync
-                                                                    (
-                                                                        this
-                                                                        , buffer
-                                                                    );
-                                        }
-                                    }
-                                    if (_isCanceledReading)
-                                    {
-                                        break;
-                                    }
-                                }
-                                return false;
-                            }
-                        );
+                if (Conection != null)
+                {
+                    await
+                        onOutputProcessAsync
+                                            (
+                                                this
+                                                , buffer
+                                            );
+                }
+            }
+            if (_isCanceledReading)
+            {
+                break;
+            }
+        }
+        return true;            
     }
 
     public async Task<bool> ExitAsync()
@@ -183,9 +208,6 @@ public class PtyTerminalHost<TConection>
     
     }
 
-    private bool _isCanceledReading;
-
-    private bool _isExited;
     public async Task<bool> ExitOnceAsync()
     {
         if (_isExited)
