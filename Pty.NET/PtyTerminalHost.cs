@@ -71,7 +71,7 @@ public class PtyTerminalHost<TConection>
                                     , Task
                                 >
                                     onOutputProcessAsync
-                            , int bytesBufferLength = 8 * 1024
+                            , int bufferBytesLength = 8 * 1024
                         )
     {
         if (Terminal is null)
@@ -92,7 +92,7 @@ public class PtyTerminalHost<TConection>
                         (
                             async () =>
                             {
-                                var bytes = new byte[bytesBufferLength];
+                                var bytes = new byte[bufferBytesLength];
                                 var listeningOutputCancellationToken =
                                             OnOutputCancellationTokenSource.Token;
                                 while
