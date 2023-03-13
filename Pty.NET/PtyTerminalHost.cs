@@ -209,11 +209,11 @@ public class PtyTerminalHost<TConection>
             uint exitCode = await _processExitedTaskCompletionSource.Task;
             r =
                 (
-                    exitCode == _ctrlCExitCode   // WinPty terminal exit code.
+                    exitCode == _ctrlCExitCode      // WinPty terminal exit code.
                     ||
-                    exitCode == 1               // Pseudo Console exit code on Win 10.
+                    exitCode == 1                   // Pseudo Console exit code on Win 10.
                     ||
-                    exitCode == 0               // pty exit code on *nix.
+                    exitCode == 0                   // pty exit code on *nix.
                 );
         }
         _isExited = r;
