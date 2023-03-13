@@ -57,6 +57,13 @@ try
                         Console.WriteLine($"{nameof(ptyTerminalHost.OnProcessExited)}: {sender!.GetType().Name} , {e.ExitCode} @ {DateTime.Now}");
                     };
 
+                    ptyTerminalHost.OnCaughtExceptionProcessAsync = async (sender, context, exception) =>
+                    {
+                        Console.WriteLine($"On {nameof(context)}: {context}\r\nCaught Exception:\r\n{exception}");
+                        return 
+                            await Task.FromResult(false);
+                    };
+
                     // run async
                     _ = ptyTerminalHost
                                     .StartRunAsync
@@ -106,10 +113,10 @@ try
                         if
                             (
                                 b == 0x0D   // enter
-                                            //||
-                                            //b == 0x26   // up
-                                            //||
-                                            //b == 0x28   // down
+                                //||
+                                //b == 0x26   // up
+                                //||
+                                //b == 0x28   // down
                             )
                         {
                             ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, p);
@@ -117,6 +124,8 @@ try
                             Console.WriteLine($"Connection [{i}] Receive Command Line:\r\n{commandLine}\r\n@ {DateTime.Now}");
                             if (commandLine == customExitCommandLine)
                             {
+                                // run async
+                                await networkStream.WriteAsync(arraySegment);
                                 await ptyTerminalHost.ExitOnceAsync();
                                 break;
                             }

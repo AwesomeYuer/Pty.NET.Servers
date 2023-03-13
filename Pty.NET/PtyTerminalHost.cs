@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Pty.NET;
 
@@ -47,6 +49,8 @@ public class PtyTerminalHost<TConection>
 
     public EventHandler<PtyExitedEventArgs>? OnProcessExited { get; set; }
 
+    public Func<PtyTerminalHost<TConection>, string, Exception, Task<bool>>? OnCaughtExceptionProcessAsync { get; set; }
+
     private bool _isCanceledReading;
 
     private bool _isExited;
@@ -84,17 +88,26 @@ public class PtyTerminalHost<TConection>
 
     public void Resize(int columns, int rows)
     {
-        _terminal!.Resize(columns, rows);
+        if (_terminal is not null)
+        {
+            _terminal.Resize(columns, rows);
+        }
     }
 
     public void Kill()
     {
-        _terminal!.Kill();
+        if (_terminal is not null)
+        {
+            _terminal!.Kill();
+        }
     }
 
     public void Kill(int milliseconds)
     {
-        _terminal!.WaitForExit(milliseconds);
+        if (_terminal is not null)
+        {
+           _terminal!.WaitForExit(milliseconds);
+        }
     }
 
     public async Task<bool> StartRunAsync
@@ -105,7 +118,7 @@ public class PtyTerminalHost<TConection>
                                             , ArraySegment<byte>
                                             , Task
                                         >
-                                            onOutputProcessAsync
+                                            onTerminalOutputProcessAsync
                                     , int bufferBytesLength = 8 * 1024
                                 )
     {
@@ -154,9 +167,32 @@ public class PtyTerminalHost<TConection>
                                                 , _readingCancellationTokenSource.Token
                                             );
                 }
-                catch (IOException ioException)
+                catch (IOException exception)
                 {
-                    Console.WriteLine($"Reading Caught {nameof(IOException)}:\r\n{ioException}");
+                    var context = $@"On ""{nameof(StartRunAsync)}"" processing, Caught Exception Type: ""{exception.GetType().Name}"" @ {DateTime.Now}";
+
+                    if (OnCaughtExceptionProcessAsync is not null)
+                    {
+                        var needRethrow = await OnCaughtExceptionProcessAsync(this, context, exception);
+                        if (needRethrow)
+                        {
+                            throw;
+                        }
+                    }
+
+                    var message = $"On {nameof(context)}: {context}\r\nCaught Exception:\r\n{exception}";
+                    var messageBytes = Encoding.UTF8.GetBytes(message);
+                    var messageArraySegment = new ArraySegment<byte>(messageBytes, 0, messageBytes.Length);
+
+                    if (Conection != null)
+                    {
+                        await
+                            onTerminalOutputProcessAsync
+                                                (
+                                                    this
+                                                    , messageArraySegment
+                                                );
+                    }
                     _readingCancellationTokenSource.Cancel();
                     _isCanceledReading = true;
                 }
@@ -182,7 +218,7 @@ public class PtyTerminalHost<TConection>
                 if (Conection != null)
                 {
                     await
-                        onOutputProcessAsync
+                        onTerminalOutputProcessAsync
                                             (
                                                 this
                                                 , buffer
