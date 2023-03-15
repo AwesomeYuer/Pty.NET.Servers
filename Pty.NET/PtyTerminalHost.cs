@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Pty.NET;
@@ -27,7 +26,6 @@ public class PtyTerminalHost<TConection>
         }
     }
 
-
     public readonly TConection Conection;
 
     private readonly string _consoleHost =
@@ -47,7 +45,7 @@ public class PtyTerminalHost<TConection>
 
     private readonly CancellationTokenSource _readingCancellationTokenSource;
 
-    public EventHandler<PtyExitedEventArgs>? OnProcessExited { get; set; }
+    public EventHandler<(PtyExitedEventArgs e, string reason)>? OnProcessExited { get; set; }
 
     public Func<PtyTerminalHost<TConection>, string, Exception, Task<bool>>? OnCaughtExceptionProcessAsync { get; set; }
 
@@ -55,13 +53,46 @@ public class PtyTerminalHost<TConection>
 
     private bool _isExited;
 
-    public PtyTerminalHost(TConection conection)
+    public DateTime StartRunTime { get; private set; }
+
+    public DateTime LatestInteractiveTime { get; private set; }
+
+    private string _exitReason = "user exit!";
+
+    private int _interactiveIdleInSeconds = 30;
+
+    public readonly int ConnectionId;
+
+    public PtyTerminalHost(TConection conection, int connectionId)
     {
+        ConnectionId = connectionId;
         Conection = conection;
         _processExitedTaskCompletionSource = new TaskCompletionSource<uint>();
         OnOutputCancellationTokenSource = new CancellationTokenSource();
         _readingCancellationTokenSource = new CancellationTokenSource(100);
     }
+
+    private async Task CheckInteractiveIdleAsync()
+    {
+        await
+            Task.Run
+                    (
+                        async () =>
+                        { 
+                            while (true) 
+                            {
+                                if ((DateTime.Now - LatestInteractiveTime).TotalSeconds > _interactiveIdleInSeconds)
+                                {
+                                    _exitReason = "system kickout user due to interactive idle timeout!";
+                                    await ExitOnceAsync();
+                                    break;
+                                }
+                                await Task.Delay(1000);
+                            }
+                        }
+                    );
+    }
+
 
     public async Task InputAsync(ArraySegment<byte> bytes, CancellationToken cancellationToken = default)
     {
@@ -132,6 +163,9 @@ public class PtyTerminalHost<TConection>
                                     , int bufferBytesLength = 8 * 1024
                                 )
     {
+        StartRunTime = DateTime.Now;
+        LatestInteractiveTime = StartRunTime;
+
         if (_terminal is null)
         {
             Options!.App = _consoleHost;
@@ -144,9 +178,12 @@ public class PtyTerminalHost<TConection>
             _terminal.ProcessExited += (sender, e) =>
             {
                 _processExitedTaskCompletionSource.TrySetResult((uint) _terminal.ExitCode);
-                OnProcessExited?.Invoke(this, e);
+                OnProcessExited?.Invoke(this, (e, _exitReason));
             };
         }
+
+        _ = CheckInteractiveIdleAsync();
+
         string output = string.Empty;
  
         var bytes = new byte[bufferBytesLength];
@@ -176,10 +213,12 @@ public class PtyTerminalHost<TConection>
                                                 , bytes.Length
                                                 , _readingCancellationTokenSource.Token
                                             );
+                    LatestInteractiveTime = DateTime.Now;
                 }
                 catch (IOException exception)
                 {
-                    var context = $@"On ""{nameof(StartRunAsync)}"" processing, Caught Exception Type: ""{exception.GetType().Name}"" @ {DateTime.Now}";
+                    #region Caught Exception
+                    var context = $@"On ""{nameof(StartRunAsync)}"" processing @ {DateTime.Now}";
 
                     if (OnCaughtExceptionProcessAsync is not null)
                     {
@@ -202,9 +241,11 @@ public class PtyTerminalHost<TConection>
                                                     this
                                                     , messageArraySegment
                                                 );
+                        LatestInteractiveTime = DateTime.Now;
                     }
                     _readingCancellationTokenSource.Cancel();
-                    _isCanceledReading = true;
+                    _isCanceledReading = true; 
+                    #endregion
                 }
                 if 
                     (
@@ -233,6 +274,7 @@ public class PtyTerminalHost<TConection>
                                                 this
                                                 , buffer
                                             );
+                    LatestInteractiveTime = DateTime.Now;
                 }
             }
             if (_isCanceledReading)
@@ -293,6 +335,7 @@ public class PtyTerminalHost<TConection>
         }
         _isExited = r;
         _terminal!.WaitForExit(1000 * 10);
+        _terminal!.Kill();
         return r;
     }
 

@@ -52,7 +52,7 @@ app.Use(async (context, next) =>
         {
             using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
             
-            var ptyTerminalHost = new PtyTerminalHost<WebSocket>(webSocket)
+            var ptyTerminalHost = new PtyTerminalHost<WebSocket>(webSocket, 1)
             {
                 Options = new PtyOptions
                 {
