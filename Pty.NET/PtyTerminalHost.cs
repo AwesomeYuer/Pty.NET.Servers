@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Pty.NET;
@@ -26,7 +25,6 @@ public class PtyTerminalHost<TConection>
                 ;
         }
     }
-
 
     public readonly TConection Conection;
 
@@ -220,7 +218,7 @@ public class PtyTerminalHost<TConection>
                 catch (IOException exception)
                 {
                     #region Caught Exception
-                    var context = $@"On ""{nameof(StartRunAsync)}"" processing, Caught Exception Type: ""{exception.GetType().Name}"" @ {DateTime.Now}";
+                    var context = $@"On ""{nameof(StartRunAsync)}"" processing @ {DateTime.Now}";
 
                     if (OnCaughtExceptionProcessAsync is not null)
                     {

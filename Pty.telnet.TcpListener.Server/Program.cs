@@ -14,34 +14,6 @@ try
     int connectionId = 0;
     int connections = 0;
 
-    _ = backgroundCommandLineAsync();
-
-    #region Local Func backgroundCommandLineAsync
-    async Task backgroundCommandLineAsync()
-    {
-        await
-            Task
-                .Run
-                    (
-                        () =>
-                        {
-                            Console.WriteLine($@"Interactive Command Line:");
-                            Console.WriteLine($@"press ""q"" to exited interactive command line!");
-                            Console.WriteLine($@"press any key to show current connections!");
-                            var input = string.Empty;
-                            while
-                                (
-                                    "q" != (input = Console.ReadLine())
-                                )
-                            {
-                                Console.Write($"Current connections: [{connections}], max of connectionId: [{connectionId}] @ {DateTime.Now}");
-                            }
-                        }
-                    );
-        Console.WriteLine($"exited interactive command line!");
-    }
-    #endregion
-
     int port = 13000;
     tcpListener = new TcpListener(IPAddress.Any, port);
 
@@ -52,7 +24,7 @@ try
     {
         Console.WriteLine($"Connections: [{connections}], Waiting for more connections ... @ {DateTime.Now}");
         TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
-        //Interlocked.Increment(ref connections);
+        Interlocked.Increment(ref connections);
         Console.WriteLine($"New connection: [{++ connectionId}] connected, current {nameof(connections)}: [{connections}] @ {DateTime.Now}");
         
         try
@@ -107,22 +79,6 @@ try
                                 );
                     }; 
 
-                    //ptyTerminalHost.OnProcessExited += (sender, (e) =>
-                    //{
-                    //    e.
-                    //    if (networkStream is not null)
-                    //    {
-                    //        networkStream.Close();
-                    //        networkStream.Dispose();
-                    //    }
-
-                    //    Console
-                    //        .WriteLine
-                    //            (
-                    //                $"Event: {nameof(ptyTerminalHost.OnProcessExited)}: {sender!.GetType().Name}, {nameof(e.)}: {e.ExitCode} @ {DateTime.Now}"
-                    //            );
-                    //};
-
                     ptyTerminalHost.OnCaughtExceptionProcessAsync = async (sender, context, exception) =>
                     {
                         //Console.WriteLine($"On {nameof(context)}: {context}\r\nCaught Exception:\r\n{exception}");
@@ -149,15 +105,14 @@ try
 
                     while (1 == 1)
                     {
-                        //Console.WriteLine($"socket reading ... @ {DateTime.Now}");
                         int r = networkStream.ReadByte();
                         if (r < 0)
                         {
                             Thread.Sleep(100);
                             continue;
                         }
-                        byte b = (byte)r;
-                        char c = (char)r;
+                        byte b = (byte) r;
+                        char c = (char) r;
                         if
                             (
                                 c != '\n'    // enter
@@ -167,7 +122,6 @@ try
                                 !char.IsControl(c)
                             )
                         {
-                            // Console.WriteLine($"socket writing {c} @ {DateTime.Now}");
                             networkStream.WriteByte((byte)'\b');
                             networkStream.WriteByte(b);
                         }
@@ -213,7 +167,7 @@ try
                         tcpClient.Dispose();
                         tcpClient = null!;
                     }
-                    //Interlocked.Decrement(ref connections);
+                    Interlocked.Decrement(ref connections);
                     Console.WriteLine($"Connection: [{connectionId}] closed, remain {nameof(connections)}: [{connections}] @ {DateTime.Now}");
                 }
             }
@@ -230,5 +184,3 @@ finally
     tcpListener.Stop();
     tcpListener = null!;
 }
-
-
